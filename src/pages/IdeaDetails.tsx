@@ -156,27 +156,19 @@ const IdeaDetails: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4">About This Idea</h2>
               <p className="text-gray-700 mb-4">
-                {idea.description}
-              </p>
-              <p className="text-gray-700">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, velit vel bibendum bibendum,
-                velit ipsum bibendum velit, vel bibendum velit ipsum vel velit. Sed euismod, velit vel bibendum
-                bibendum, velit ipsum bibendum velit, vel bibendum velit ipsum vel velit.
+                {idea.about_this_idea}
               </p>
 
               <h3 className="text-lg font-bold text-gray-900 mt-6 mb-3">Key Features</h3>
               <ul className="list-disc pl-5 space-y-2 text-gray-700">
-                <li>Innovative technology that addresses a growing market need</li>
-                <li>Environmentally sustainable approach with measurable impact</li>
-                <li>Scalable business model with multiple revenue streams</li>
-                <li>Experienced team with industry expertise</li>
+                {idea.key_features.map((feature: string, index: number) => (
+                  <li key={index}>{feature}</li>
+                ))}
               </ul>
 
               <h3 className="text-lg font-bold text-gray-900 mt-6 mb-3">Market Opportunity</h3>
               <p className="text-gray-700">
-                The global market for this solution is projected to reach $50B by 2025, growing at a CAGR of 15%.
-                Our unique approach addresses key pain points that existing solutions fail to solve, positioning
-                us for rapid adoption and growth.
+               {idea.market_opportunity}
               </p>
             </div>
 
