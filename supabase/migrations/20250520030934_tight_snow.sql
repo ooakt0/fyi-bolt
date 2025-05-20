@@ -88,3 +88,13 @@ Create POLICY "Authenticated users can read all profiles"
   using (
     true
   );
+-- allow a signed-in user to save/unsave an idea
+  create table public.saved_ideas (
+  id uuid primary key default uuid_generate_v4(),
+  investor_id uuid references users(id) on delete cascade,
+  idea_id uuid references ideas(id) on delete cascade,
+  created_at timestamp with time zone default now()
+);
+
+-- add a unique constraint to prevent duplicate saves
+alter table public.saved_ideas add constraint unique_investor_idea unique (investor_id, idea_id);

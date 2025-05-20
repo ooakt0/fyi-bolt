@@ -6,9 +6,11 @@ import { Idea } from '../../types';
 interface IdeaCardProps {
   idea: Idea;
   trending?: boolean;
+  onSave?: () => void;
+  isSaved?: boolean;
 }
 
-const IdeaCard: React.FC<IdeaCardProps> = ({ idea, trending = false }) => {
+const IdeaCard: React.FC<IdeaCardProps> = ({ idea, trending = false, onSave, isSaved }) => {
   const fundingPercentage = Math.min(Math.round((idea.currentFunding / idea.fundingGoal) * 100), 100);
   
   return (
@@ -30,9 +32,15 @@ const IdeaCard: React.FC<IdeaCardProps> = ({ idea, trending = false }) => {
           </div>
         )}
         
-        <button className="absolute top-3 left-3 bg-white bg-opacity-80 hover:bg-opacity-100 p-1.5 rounded-full text-gray-700 hover:text-primary-600 transition-colors">
-          <Bookmark className="h-4 w-4" />
-        </button>
+        {onSave && (
+          <button
+            className={`absolute top-3 left-3 bg-white bg-opacity-80 hover:bg-opacity-100 p-1.5 rounded-full transition-colors ${isSaved ? 'text-primary-600' : 'text-gray-700 hover:text-primary-600'}`}
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onSave(); }}
+            title={isSaved ? 'Unsave Idea' : 'Save Idea'}
+          >
+            <Bookmark className="h-4 w-4" fill={isSaved ? '#2563eb' : 'none'} />
+          </button>
+        )}
       </div>
       
       {/* Content */}
