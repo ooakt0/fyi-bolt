@@ -1,29 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, BookmarkPlus, DollarSign, Briefcase, TrendingUp } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
-import { mockIdeas, getMessagesForUser } from '../../data/mockData';
+import { supabase } from '../../store/authStore/supabaseClient';
+import { getMessagesForUser } from '../../data/mockData';
 import IdeaCard from '../ideas/IdeaCard';
 
 const InvestorDashboard: React.FC = () => {
   const { user } = useAuthStore();
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [stageFilter, setStageFilter] = useState<string>('all');
-  
+  const [ideas, setIdeas] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
   // Get messages
   const userMessages = user ? getMessagesForUser(user.id) : [];
-  
+
+  useEffect(() => {
+    const fetchIdeas = async () => {
+      setLoading(true);
+      const { data, error } = await supabase.from('ideas').select('*');
+      if (!error && data) {
+        setIdeas(data);
+      }
+      setLoading(false);
+    };
+    fetchIdeas();
+  }, []);
+
   // Get ideas with filters
-  const filteredIdeas = mockIdeas.filter(idea => {
+  const filteredIdeas = ideas.filter(idea => {
     const matchesCategory = categoryFilter === 'all' || idea.category === categoryFilter;
     const matchesStage = stageFilter === 'all' || idea.stage === stageFilter;
     return matchesCategory && matchesStage;
   });
-  
+
   // Get unique categories and stages for filters
-  const categories = ['all', ...new Set(mockIdeas.map(idea => idea.category))];
-  const stages = ['all', ...new Set(mockIdeas.map(idea => idea.stage))];
-  
+  const categories = ['all', ...new Set(ideas.map(idea => idea.category))];
+  const stages = ['all', ...new Set(ideas.map(idea => idea.stage))];
+
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
@@ -51,7 +66,7 @@ const InvestorDashboard: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Available Ideas</p>
-              <h3 className="text-xl font-bold text-gray-900">{mockIdeas.length}</h3>
+              <h3 className="text-xl font-bold text-gray-900">{ideas.length}</h3>
             </div>
           </div>
         </div>
@@ -64,7 +79,7 @@ const InvestorDashboard: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Avg. Funding Goal</p>
               <h3 className="text-xl font-bold text-gray-900">
-                ${Math.round(mockIdeas.reduce((sum, idea) => sum + idea.fundingGoal, 0) / mockIdeas.length).toLocaleString()}
+                {ideas.length > 0 ? `$${Math.round(ideas.reduce((sum, idea) => sum + idea.fundingGoal, 0) / ideas.length).toLocaleString()}` : '$0'}
               </h3>
             </div>
           </div>
@@ -136,7 +151,9 @@ const InvestorDashboard: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Ideas for You</h2>
         
-        {filteredIdeas.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-12 bg-gray-50 rounded-lg">Loading ideas...</div>
+        ) : filteredIdeas.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredIdeas.map((idea) => (
               <IdeaCard key={idea.id} idea={idea} />
@@ -169,8 +186,8 @@ const InvestorDashboard: React.FC = () => {
         <h2 className="text-xl font-bold text-gray-900 mb-6">Trending Ideas</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockIdeas
-            .sort((a, b) => b.currentFunding / b.fundingGoal - a.currentFunding / a.fundingGoal)
+          {ideas
+            .sort((a, b) => (b.currentFunding / b.fundingGoal) - (a.currentFunding / a.fundingGoal))
             .slice(0, 3)
             .map((idea) => (
               <IdeaCard key={idea.id} idea={idea} trending />

@@ -2,21 +2,23 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { PlusCircle, DollarSign, MessageSquare, TrendingUp, Users } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
-import { mockIdeas, getMessagesForUser } from '../../data/mockData';
+import { getMessagesForUser } from '../../data/mockData';
 import IdeaCard from '../ideas/IdeaCard';
 
-const CreatorDashboard: React.FC = () => {
+interface CreatorDashboardProps {
+  userIdeas: any[];
+  loadingIdeas: boolean;
+}
+
+const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ userIdeas, loadingIdeas }) => {
   const { user } = useAuthStore();
-  
-  // Get ideas created by the current user
-  const userIdeas = user ? mockIdeas.filter(idea => idea.creatorId === user.id) : [];
   
   // Get unread messages
   const userMessages = user ? getMessagesForUser(user.id) : [];
   const unreadMessages = userMessages.filter(msg => !msg.read && msg.receiverId === user?.id);
   
   // Calculate total funding raised
-  const totalFunding = userIdeas.reduce((sum, idea) => sum + idea.currentFunding, 0);
+  const totalFunding = userIdeas.reduce((sum, idea) => sum + (idea.currentFunding || 0), 0);
   
   return (
     <div className="space-y-8">
@@ -83,8 +85,9 @@ const CreatorDashboard: React.FC = () => {
             View all
           </Link>
         </div>
-        
-        {userIdeas.length > 0 ? (
+        {loadingIdeas ? (
+          <div className="text-center py-12">Loading your ideas...</div>
+        ) : userIdeas.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {userIdeas.map((idea) => (
               <IdeaCard key={idea.id} idea={idea} />

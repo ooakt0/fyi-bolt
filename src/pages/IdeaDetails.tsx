@@ -1,17 +1,27 @@
-import React, { useState } from 'react';
-import { useParams, Link, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, Navigate, useLocation } from 'react-router-dom';
 import { Share2, DollarSign, MessageSquare, Bookmark, Calendar, BarChart, Tag, Award } from 'lucide-react';
 import { mockIdeas } from '../data/mockData';
 import { useAuthStore } from '../store/authStore';
+import { supabase } from '../store/authStore/supabaseClient';
 
 const IdeaDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const { user, isAuthenticated } = useAuthStore();
+  const [idea, setIdea] = useState<any>(location.state?.idea || null);
   const [showContactForm, setShowContactForm] = useState(false);
   const [message, setMessage] = useState('');
   
-  // Find the idea with the matching id
-  const idea = mockIdeas.find(i => i.id === id);
+  useEffect(() => {
+    const fetchIdea = async () => {
+      if (!idea && id) {
+        const { data } = await supabase.from('ideas').select('*').eq('id', id).single();
+        if (data) setIdea(data);
+      }
+    };
+    fetchIdea();
+  }, [id, idea]);
   
   // If idea not found, redirect to 404 or ideas page
   if (!idea) {
@@ -130,14 +140,14 @@ const IdeaDetails: React.FC = () => {
                 <h3 className="text-lg font-bold text-gray-900">Tags</h3>
               </div>
               <div className="flex flex-wrap gap-2">
-                {idea.tags.map((tag) => (
+                {Array.isArray(idea.tags) ? idea.tags.map((tag: string) => (
                   <span 
                     key={tag} 
                     className="inline-block px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full hover:bg-gray-200 cursor-pointer"
                   >
                     {tag}
                   </span>
-                ))}
+                )) : null}
               </div>
             </div>
           </div>

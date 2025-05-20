@@ -78,6 +78,7 @@ const IdeaCard: React.FC<IdeaCardProps> = ({ idea, trending = false }) => {
           <Link
             to={`/ideas/${idea.id}`}
             className="text-sm font-medium text-primary-600 hover:text-primary-800"
+            state={{ idea }}
           >
             View details
           </Link>

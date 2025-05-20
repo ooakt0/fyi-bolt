@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import Ideas from './pages/Ideas';
 import IdeaDetails from './pages/IdeaDetails';
 import HowItWorks from './pages/HowItWorks';
+import IdeaForm from './pages/IdeaForm';
 import { useAuthStore, initializeAuthStore } from './store/authStore';
 
 const App: React.FC = () => {
@@ -38,6 +39,11 @@ const App: React.FC = () => {
             <Route path="/signup" element={<Signup />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/ideas" element={<Ideas />} />
+            <Route path="/ideas/new" element={
+              <ProtectedRoute>
+                <IdeaForm />
+              </ProtectedRoute>
+            } />
             <Route path="/ideas/:id" element={<IdeaDetails />} />
             <Route 
               path="/dashboard" 
