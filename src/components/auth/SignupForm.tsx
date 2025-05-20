@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { AlertCircle, Loader } from 'lucide-react';
 
 const SignupForm: React.FC = () => {
+  const location = useLocation();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,7 +13,14 @@ const SignupForm: React.FC = () => {
   const [passwordError, setPasswordError] = useState('');
   
   const { signup, loading, error, verificationSent, clearError } = useAuthStore();
-  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const urlRole = params.get('role');
+    if (urlRole === 'investor' || urlRole === 'creator') {
+      setRole(urlRole);
+    }
+  }, [location.search]);
 
   const validateForm = () => {
     if (password !== confirmPassword) {
@@ -230,4 +238,4 @@ const SignupForm: React.FC = () => {
   );
 };
 
-export default SignupForm
+export default SignupForm;
