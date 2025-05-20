@@ -11,6 +11,7 @@ import IdeaDetails from './pages/IdeaDetails';
 import HowItWorks from './pages/HowItWorks';
 import IdeaForm from './pages/IdeaForm';
 import SavedIdeas from './pages/SavedIdeas';
+import Profile from './pages/Profile';
 import { useAuthStore, initializeAuthStore } from './store/authStore';
 
 const App: React.FC = () => {
@@ -58,6 +59,14 @@ const App: React.FC = () => {
                   <Dashboard />
                 </ProtectedRoute>
               } 
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
             />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
