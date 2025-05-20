@@ -65,3 +65,26 @@ create trigger profiles_updated_at
   before update on public.profiles
   for each row
   execute procedure public.handle_updated_at();
+
+  -- allow a signed-in user to insert _their own_ profile row
+CREATE POLICY "Users can insert own profile"
+  ON public.users
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = id);
+
+-- allow a signed-in user to update _their own_ profile row
+CREATE POLICY "Users can update own profile"
+  ON public.users
+  FOR UPDATE
+  TO authenticated
+  USING       (auth.uid() = id)
+  WITH CHECK  (auth.uid() = id);
+  
+-- allow a signed-in user to select _their own_ profile row
+Create POLICY "Authenticated users can read all profiles"
+  on "public"."users"
+  to authenticated
+  using (
+    true
+  );

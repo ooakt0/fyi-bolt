@@ -1,11 +1,6 @@
 import { create } from 'zustand';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from './authStore/supabaseClient';
 import { User } from '../types';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
-);
 
 export type AuthState = {
   user: User | null;
@@ -17,7 +12,6 @@ export type AuthState = {
 
 export type AuthActions = {
   login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
   signup: (
     name: string,
     email: string,
@@ -31,7 +25,7 @@ export type AuthActions = {
 
 const createOrUpdateProfile = async (
   userId: string,
-  data: { name?: string; email: string; role?: string }
+  data: { name: string; email: string; role: string }
 ) => {
   const { error: upsertError } = await supabase.from('profiles').upsert(
     {
@@ -84,9 +78,14 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
       }
 
       if (data.user) {
-        const profile = await createOrUpdateProfile(data.user.id, {
-          email: data.user.email!,
-        });
+        // Only fetch profile, do not update or upsert during login
+        const { data: profile, error: fetchError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        if (fetchError) throw fetchError;
 
         const user: User = {
           id: data.user.id,
@@ -110,42 +109,35 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
     }
   },
 
-  loginWithGoogle: async () => {
-    set({ loading: true, error: null });
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (error) throw error;
-    } catch (error) {
-      set({
-        error:
-          error instanceof Error ? error.message : 'An unknown error occurred',
-        loading: false,
-      });
-    }
-  },
-
   signup: async (name, email, password, role) => {
     set({ loading: true, error: null });
     try {
+      // Check if user already exists in users table
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('users') 
+        .select('email')
+        .eq('email', email);
+
+      if (checkError) throw checkError;
+      if (existingUsers && existingUsers.length > 0) {
+        set({
+          loading: false,
+          error: 'An account with this email already exists. Please sign in instead.',
+        });
+        // wait 5 seconds before redirecting to login
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 5000);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            name,
-            role,
-          },
-        },
       });
 
       if (error) throw error;
-
+      console.log('Signup data:', data);
       if (data.user) {
         await createOrUpdateProfile(data.user.id, {
           name,
@@ -194,9 +186,14 @@ export const initializeAuthStore = async () => {
 
   if (session?.user) {
     try {
-      const profile = await createOrUpdateProfile(session.user.id, {
-        email: session.user.email!,
-      });
+      // Only fetch profile, do not update or upsert
+      const { data: profile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (fetchError) throw fetchError;
 
       const user: User = {
         id: session.user.id,
@@ -218,9 +215,14 @@ export const initializeAuthStore = async () => {
   supabase.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
       try {
-        const profile = await createOrUpdateProfile(session.user.id, {
-          email: session.user.email!,
-        });
+        // Only fetch profile, do not update or upsert
+        const { data: profile, error: fetchError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (fetchError) throw fetchError;
 
         const user: User = {
           id: session.user.id,
