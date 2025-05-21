@@ -60,7 +60,7 @@ const SavedIdeas: React.FC = () => {
         <div className="mb-8 flex items-start">
           <button
             className="text-primary-600 hover:text-primary-700 flex items-center text-sm"
-            onClick={() => window.location.href = '/dashboard'}
+            onClick={() => window.history.back()}
           >
             ← Back to dashboard
           </button>
