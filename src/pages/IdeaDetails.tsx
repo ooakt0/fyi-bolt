@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, Navigate, useLocation } from 'react-router-dom';
 import { Share2, DollarSign, MessageSquare, Bookmark, Calendar, BarChart, Tag, Award } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Linkedin, Copy } from 'lucide-react';
 import { mockIdeas } from '../data/mockData';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../store/authStore/supabaseClient';
@@ -14,6 +15,17 @@ const IdeaDetails: React.FC = () => {
   const [message, setMessage] = useState('');
   const [savedIdeas, setSavedIdeas] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
+  const [showInvestModal, setShowInvestModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'khalti' | 'stripe' | null>(null);
+  const [cardDetails, setCardDetails] = useState({
+    cardNumber: '',
+    expiry: '',
+    cvc: '',
+    amount: idea?.fundingGoal ? idea.fundingGoal - idea.currentFunding : '',
+  });
+  const [investLoading, setInvestLoading] = useState(false);
+  const [investSuccess, setInvestSuccess] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
 
   useEffect(() => {
     const fetchIdea = async () => {
@@ -88,6 +100,67 @@ const IdeaDetails: React.FC = () => {
     setShowContactForm(false);
   };
 
+  const handleInvestChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCardDetails({ ...cardDetails, [e.target.name]: e.target.value });
+  };
+
+  const handleInvestSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setInvestLoading(true);
+    // Simulate payment processing
+    setTimeout(() => {
+      setInvestLoading(false);
+      setInvestSuccess(true);
+      setTimeout(() => {
+        setShowInvestModal(false);
+        setInvestSuccess(false);
+        setCardDetails({ cardNumber: '', expiry: '', cvc: '', amount: idea?.fundingGoal ? idea.fundingGoal - idea.currentFunding : '' });
+      }, 1500);
+    }, 1200);
+  };
+
+  const shareUrl = window.location.origin + `/ideas/${idea.id}`;
+  const shareText = `Check out this idea on Fund Your Idea: ${idea.title} - ${idea.about_this_idea}\nSee more: ${shareUrl}`;
+
+  const handleShare = (platform: string) => {
+    let url = '';
+    switch (platform) {
+      case 'facebook':
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
+        break;
+      case 'twitter':
+        url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+        break;
+      case 'linkedin':
+        url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}&summary=${encodeURIComponent(shareText)}`;
+        break;
+      case 'instagram':
+        // Instagram does not support direct web sharing, so show a message
+        alert('Instagram does not support direct web sharing. Copy the link and share it on your Instagram profile or story.');
+        return;
+      case 'copy':
+        navigator.clipboard.writeText(shareText);
+        alert('Link and info copied to clipboard!');
+        return;
+      default:
+        return;
+    }
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  // Close share menu when clicking outside
+  React.useEffect(() => {
+    if (!showShareMenu) return;
+    const handleClick = (e: MouseEvent) => {
+      const menu = document.getElementById('share-menu');
+      if (menu && !menu.contains(e.target as Node)) {
+        setShowShareMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showShareMenu]);
+
   return (
     <div className="pt-24 pb-12 bg-gray-50 min-h-screen">
       <div className="container-custom">
@@ -144,10 +217,31 @@ const IdeaDetails: React.FC = () => {
                     <Bookmark className="h-4 w-4 mr-2" fill={savedIdeas.includes(idea.id) ? '#2563eb' : 'none'} />
                     {savedIdeas.includes(idea.id) ? 'Saved' : 'Save'}
                   </button>
-                  <button className="btn btn-outline">
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Share
-                  </button>
+                  <div className="relative flex items-center">
+                    <button className="btn btn-outline flex items-center" onClick={() => setShowShareMenu((v) => !v)} type="button">
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Share
+                    </button>
+                    {showShareMenu && (
+                      <div id="share-menu" className="absolute z-50 left-full top-1/2 -translate-y-1/2 ml-2 bg-white rounded shadow-lg p-2 flex flex-row gap-2 min-w-[40px] animate-fade-in">
+                        <div role="button" tabIndex={0} className="flex items-center justify-center hover:bg-gray-100 p-2 rounded cursor-pointer" onClick={() => handleShare('facebook')} onKeyPress={e => {if(e.key==='Enter'){handleShare('facebook')}}} title="Share on Facebook">
+                          <Facebook className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div role="button" tabIndex={0} className="flex items-center justify-center hover:bg-gray-100 p-2 rounded cursor-pointer" onClick={() => handleShare('twitter')} onKeyPress={e => {if(e.key==='Enter'){handleShare('twitter')}}} title="Share on X (Twitter)">
+                          <Twitter className="h-5 w-5 text-sky-500" />
+                        </div>
+                        <div role="button" tabIndex={0} className="flex items-center justify-center hover:bg-gray-100 p-2 rounded cursor-pointer" onClick={() => handleShare('linkedin')} onKeyPress={e => {if(e.key==='Enter'){handleShare('linkedin')}}} title="Share on LinkedIn">
+                          <Linkedin className="h-5 w-5 text-blue-700" />
+                        </div>
+                        <div role="button" tabIndex={0} className="flex items-center justify-center hover:bg-gray-100 p-2 rounded cursor-pointer" onClick={() => handleShare('instagram')} onKeyPress={e => {if(e.key==='Enter'){handleShare('instagram')}}} title="Share on Instagram">
+                          <Instagram className="h-5 w-5 text-pink-500" />
+                        </div>
+                        <div role="button" tabIndex={0} className="flex items-center justify-center hover:bg-gray-100 p-2 rounded cursor-pointer" onClick={() => handleShare('copy')} onKeyPress={e => {if(e.key==='Enter'){handleShare('copy')}}} title="Copy Link">
+                          <Copy className="h-5 w-5 text-gray-500" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -221,7 +315,7 @@ const IdeaDetails: React.FC = () => {
               </div>
 
               {isAuthenticated && user?.role === 'investor' && (
-                <button className="btn btn-primary w-full">
+                <button className="btn btn-primary w-full" onClick={() => setShowInvestModal(true)}>
                   <DollarSign className="h-4 w-4 mr-2" />
                   Invest in this Idea
                 </button>
@@ -355,6 +449,39 @@ const IdeaDetails: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Invest Modal */}
+      {showInvestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-8 relative animate-fade-in">
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl"
+              onClick={() => {
+                setShowInvestModal(false);
+                setPaymentMethod(null);
+              }}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl font-bold mb-6 text-center text-primary-700">Invest in this Idea</h2>
+            <div className="space-y-6 text-center">
+              <p className="text-gray-700 text-lg font-medium">
+                Online payment is coming soon.<br />
+                To invest, please reach out to <a href="mailto:invest@fundyouridea.ooaktech.com" className="text-primary-600 underline">invest@fundyouridea.ooaktech.com</a>
+              </p>
+              <div className="space-y-3">
+                <button className="btn btn-primary w-full" disabled>
+                  Invest via Khalti (Coming Soon)
+                </button>
+                <button className="btn btn-outline w-full" disabled>
+                  Invest via Stripe (Coming Soon)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
