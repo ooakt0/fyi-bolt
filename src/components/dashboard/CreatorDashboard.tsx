@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PlusCircle, DollarSign, MessageSquare, TrendingUp, Users } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
-import { getMessagesForUser } from '../../data/mockData';
+import { supabase } from '../../store/authStore/supabaseClient';
 import IdeaCard from '../ideas/IdeaCard';
 
 interface CreatorDashboardProps {
@@ -12,14 +12,40 @@ interface CreatorDashboardProps {
 
 const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ userIdeas, loadingIdeas }) => {
   const { user } = useAuthStore();
-  
-  // Get unread messages
-  const userMessages = user ? getMessagesForUser(user.id) : [];
-  const unreadMessages = userMessages.filter(msg => !msg.read && msg.receiverId === user?.id);
-  
+  const [messages, setMessages] = useState<any[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(true);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!user || !userIdeas.length) {
+        setMessages([]);
+        setLoadingMessages(false);
+        return;
+      }
+      const ideaIds = userIdeas.map((idea) => idea.id);
+      // Fetch messages with sender info and idea title
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*, sender:sender_id (id, name), idea:idea_id (id, title)')
+        .in('idea_id', ideaIds)
+        .eq('recipient_id', user.id)
+        .order('created_at', { ascending: false });
+      if (!error && data) {
+        setMessages(data);
+      } else {
+        setMessages([]);
+      }
+      setLoadingMessages(false);
+    };
+    fetchMessages();
+  }, [user, userIdeas]);
+
+  // Unread messages count
+  const unreadMessages = messages.filter(msg => !msg.read);
+
   // Calculate total funding raised
   const totalFunding = userIdeas.reduce((sum, idea) => sum + (idea.currentFunding || 0), 0);
-  
+
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
@@ -119,17 +145,14 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ userIdeas, loadingI
             View all
           </Link>
         </div>
-        
-        {userMessages.length > 0 ? (
+        {loadingMessages ? (
+          <div className="text-center py-8">Loading messages...</div>
+        ) : messages.length > 0 ? (
           <div className="space-y-4">
-            {userMessages.slice(0, 3).map((message) => (
-              <div 
-                key={message.id} 
-                className={`p-4 rounded-lg border ${
-                  !message.read && message.receiverId === user?.id
-                    ? 'bg-primary-50 border-primary-100'
-                    : 'bg-white border-gray-200'
-                }`}
+            {messages.slice(0, 3).map((message) => (
+              <div
+                key={message.id}
+                className={`p-4 rounded-lg border ${!message.read ? 'bg-primary-50 border-primary-100' : 'bg-white border-gray-200'}`}
               >
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
@@ -139,11 +162,14 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ userIdeas, loadingI
                   </div>
                   <div className="ml-3 flex-1">
                     <p className="text-sm font-medium text-gray-900">
-                      {message.senderId === user?.id ? 'You' : 'Investor'}
+                      From: {message.sender?.name || 'Investor'}
+                    </p>
+                    <p className="text-xs text-gray-500 mb-1">
+                      About: <span className="font-semibold">{message.idea?.title || 'Idea'}</span>
                     </p>
                     <p className="mt-1 text-sm text-gray-600">{message.content}</p>
                     <p className="mt-1 text-xs text-gray-500">
-                      {new Date(message.timestamp).toLocaleDateString()} at {new Date(message.timestamp).toLocaleTimeString()}
+                      {new Date(message.created_at).toLocaleDateString()} at {new Date(message.created_at).toLocaleTimeString()}
                     </p>
                   </div>
                 </div>

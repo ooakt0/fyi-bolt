@@ -98,3 +98,13 @@ Create POLICY "Authenticated users can read all profiles"
 
 -- add a unique constraint to prevent duplicate saves
 alter table public.saved_ideas add constraint unique_investor_idea unique (investor_id, idea_id);
+
+
+create table messages (
+  id uuid primary key default uuid_generate_v4(),
+  idea_id uuid references ideas(id) on delete cascade,
+  sender_id uuid references users(id) on delete set null,
+  recipient_id uuid references users(id) on delete set null,
+  content text not null,
+  created_at timestamp with time zone default timezone('utc', now())
+);

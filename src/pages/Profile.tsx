@@ -9,27 +9,19 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    bio: user?.bio || '',
-    avatar_url: user?.profileImage || '',
-  });
-
-  // Additional fields for creators
-  const [creatorFields, setCreatorFields] = useState({
+    name: '',
+    email: '',
+    bio: '',
+    avatar_url: '',
     expertise: '',
     portfolio_url: '',
     linkedin_url: '',
     github_url: '',
-  });
-
-  // Additional fields for investors
-  const [investorFields, setInvestorFields] = useState({
     investment_focus: '',
     investment_range: '',
-    linkedin_url: '',
     company: '',
     position: '',
+    role: '',
   });
 
   useEffect(() => {
@@ -37,71 +29,60 @@ const Profile: React.FC = () => {
       navigate('/login');
       return;
     }
-
-    const fetchExtendedProfile = async () => {
+    const fetchProfile = async () => {
       if (!user) return;
-
-      const { data: extendedData, error } = await supabase
-        .from(user.role === 'creator' ? 'creator_profiles' : 'investor_profiles')
+      const { data, error } = await supabase
+        .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .single();
-
-      if (!error && extendedData) {
-        if (user.role === 'creator') {
-          setCreatorFields(extendedData);
-        } else {
-          setInvestorFields(extendedData);
-        }
+      if (!error && data) {
+        setFormData({
+          name: data.name || '',
+          email: data.email || '',
+          bio: data.bio || '',
+          avatar_url: data.avatar_url || '',
+          expertise: data.expertise || '',
+          portfolio_url: data.portfolio_url || '',
+          linkedin_url: data.linkedin_url || '',
+          github_url: data.github_url || '',
+          investment_focus: data.investment_focus || '',
+          investment_range: data.investment_range || '',
+          company: data.company || '',
+          position: data.position || '',
+          role: data.role || user.role || '',
+        });
       }
     };
-
-    fetchExtendedProfile();
+    fetchProfile();
   }, [user, isAuthenticated, navigate]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      // Update basic profile
-      const { error: profileError } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .update({
           name: formData.name,
           bio: formData.bio,
           avatar_url: formData.avatar_url,
+          expertise: formData.expertise,
+          portfolio_url: formData.portfolio_url,
+          linkedin_url: formData.linkedin_url,
+          github_url: formData.github_url,
+          investment_focus: formData.investment_focus,
+          investment_range: formData.investment_range,
+          company: formData.company,
+          position: formData.position,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user?.id);
-
-      if (profileError) throw profileError;
-
-      // Update role-specific profile
-      if (!user) throw new Error('User not found');
-
-      if (user.role === 'creator') {
-        const { error: creatorError } = await supabase
-          .from('creator_profiles')
-          .upsert({
-            user_id: user.id,
-            ...creatorFields,
-            updated_at: new Date().toISOString(),
-          });
-
-        if (creatorError) throw creatorError;
-      } else {
-        const { error: investorError } = await supabase
-          .from('investor_profiles')
-          .upsert({
-            user_id: user.id,
-            ...investorFields,
-            updated_at: new Date().toISOString(),
-          });
-
-        if (investorError) throw investorError;
-      }
-
+      if (error) throw error;
       alert('Profile updated successfully!');
     } catch (error) {
       alert('Error updating profile!');
@@ -136,9 +117,7 @@ const Profile: React.FC = () => {
               <div>
                 <h1 className="text-2xl font-bold text-white">{formData.name || 'Your Name'}</h1>
                 <p className="text-primary-100">
-                  {user?.role
-                    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
-                    : ''}
+                  {formData.role ? formData.role.charAt(0).toUpperCase() + formData.role.slice(1) : ''}
                 </p>
               </div>
             </div>
@@ -152,8 +131,9 @@ const Profile: React.FC = () => {
                 </label>
                 <input
                   type="text"
+                  name="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={handleChange}
                   className="input"
                   required
                 />
@@ -165,6 +145,7 @@ const Profile: React.FC = () => {
                 </label>
                 <input
                   type="email"
+                  name="email"
                   value={formData.email}
                   className="input bg-gray-50"
                   disabled
@@ -179,15 +160,16 @@ const Profile: React.FC = () => {
                   Bio
                 </label>
                 <textarea
+                  name="bio"
                   value={formData.bio}
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  onChange={handleChange}
                   className="input"
                   rows={4}
                   placeholder="Tell us about yourself..."
                 />
               </div>
 
-              {user?.role === 'creator' ? (
+              {formData.role === 'creator' ? (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -195,8 +177,9 @@ const Profile: React.FC = () => {
                     </label>
                     <input
                       type="text"
-                      value={creatorFields.expertise}
-                      onChange={(e) => setCreatorFields({ ...creatorFields, expertise: e.target.value })}
+                      name="expertise"
+                      value={formData.expertise}
+                      onChange={handleChange}
                       className="input"
                       placeholder="e.g., Mobile Development, AI, Blockchain"
                     />
@@ -208,8 +191,9 @@ const Profile: React.FC = () => {
                     </label>
                     <input
                       type="url"
-                      value={creatorFields.portfolio_url}
-                      onChange={(e) => setCreatorFields({ ...creatorFields, portfolio_url: e.target.value })}
+                      name="portfolio_url"
+                      value={formData.portfolio_url}
+                      onChange={handleChange}
                       className="input"
                       placeholder="https://your-portfolio.com"
                     />
@@ -222,8 +206,9 @@ const Profile: React.FC = () => {
                       </label>
                       <input
                         type="url"
-                        value={creatorFields.linkedin_url}
-                        onChange={(e) => setCreatorFields({ ...creatorFields, linkedin_url: e.target.value })}
+                        name="linkedin_url"
+                        value={formData.linkedin_url}
+                        onChange={handleChange}
                         className="input"
                         placeholder="https://linkedin.com/in/your-profile"
                       />
@@ -234,8 +219,9 @@ const Profile: React.FC = () => {
                       </label>
                       <input
                         type="url"
-                        value={creatorFields.github_url}
-                        onChange={(e) => setCreatorFields({ ...creatorFields, github_url: e.target.value })}
+                        name="github_url"
+                        value={formData.github_url}
+                        onChange={handleChange}
                         className="input"
                         placeholder="https://github.com/your-username"
                       />
@@ -250,8 +236,9 @@ const Profile: React.FC = () => {
                     </label>
                     <input
                       type="text"
-                      value={investorFields.investment_focus}
-                      onChange={(e) => setInvestorFields({ ...investorFields, investment_focus: e.target.value })}
+                      name="investment_focus"
+                      value={formData.investment_focus}
+                      onChange={handleChange}
                       className="input"
                       placeholder="e.g., SaaS, FinTech, Healthcare"
                     />
@@ -263,8 +250,9 @@ const Profile: React.FC = () => {
                     </label>
                     <input
                       type="text"
-                      value={investorFields.investment_range}
-                      onChange={(e) => setInvestorFields({ ...investorFields, investment_range: e.target.value })}
+                      name="investment_range"
+                      value={formData.investment_range}
+                      onChange={handleChange}
                       className="input"
                       placeholder="e.g., $10K - $50K"
                     />
@@ -277,8 +265,9 @@ const Profile: React.FC = () => {
                       </label>
                       <input
                         type="text"
-                        value={investorFields.company}
-                        onChange={(e) => setInvestorFields({ ...investorFields, company: e.target.value })}
+                        name="company"
+                        value={formData.company}
+                        onChange={handleChange}
                         className="input"
                         placeholder="Your company name"
                       />
@@ -289,8 +278,9 @@ const Profile: React.FC = () => {
                       </label>
                       <input
                         type="text"
-                        value={investorFields.position}
-                        onChange={(e) => setInvestorFields({ ...investorFields, position: e.target.value })}
+                        name="position"
+                        value={formData.position}
+                        onChange={handleChange}
                         className="input"
                         placeholder="Your role"
                       />
@@ -303,8 +293,9 @@ const Profile: React.FC = () => {
                     </label>
                     <input
                       type="url"
-                      value={investorFields.linkedin_url}
-                      onChange={(e) => setInvestorFields({ ...investorFields, linkedin_url: e.target.value })}
+                      name="linkedin_url"
+                      value={formData.linkedin_url}
+                      onChange={handleChange}
                       className="input"
                       placeholder="https://linkedin.com/in/your-profile"
                     />

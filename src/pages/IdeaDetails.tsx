@@ -92,9 +92,31 @@ const IdeaDetails: React.FC = () => {
     day: 'numeric'
   });
 
-  const handleSubmitMessage = (e: React.FormEvent) => {
+  const handleSubmitMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would send the message to the backend
+    if (!user || user.role !== 'investor') {
+      alert('You must be logged in as an investor to send messages.');
+      return;
+    }
+    // Find the creator's user ID (use camelCase: creatorId)
+    const recipientId = idea.creatorId;
+    if (!recipientId) {
+      alert('Creator information not found.');
+      return;
+    }
+    // Save message to Supabase
+    const { error } = await supabase.from('messages').insert([
+      {
+        idea_id: idea.id,
+        sender_id: user.id,
+        recipient_id: recipientId,
+        content: message,
+      },
+    ]);
+    if (error) {
+      alert('Failed to send message. Please try again.');
+      return;
+    }
     alert('Message sent successfully!');
     setMessage('');
     setShowContactForm(false);
