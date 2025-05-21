@@ -1,12 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Lightbulb as LightBulb, ArrowRight, BarChart, Users, PieChart, DollarSign, CheckCircle } from 'lucide-react';
-import { mockIdeas } from '../data/mockData';
+import { useIdeasStore } from '../store/authStore/ideasStore';
+// import {IdeasStore}
 
 const Home: React.FC = () => {
-  // Get a few ideas to showcase
-  const featuredIdeas = mockIdeas.slice(0, 3);
-  
+  const { ideas, loading, error, fetchIdeas } = useIdeasStore();
+  // Only fetch if ideas are not already loaded
+  useEffect(() => {
+    if (ideas.length === 0) fetchIdeas();
+  }, [ideas.length, fetchIdeas]);
+
+  const featuredIdeas = ideas.slice(0, 3);
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
@@ -103,50 +109,74 @@ const Home: React.FC = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredIdeas.map((idea) => (
-              <div key={idea.id} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow border border-gray-200">
-                <img
-                  src={idea.imageUrl}
-                  alt={idea.title}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-6">
-                  <div className="flex mb-2">
-                    <span className="inline-block px-2 py-1 text-xs font-medium bg-primary-50 text-primary-700 rounded-full">
-                      {idea.category}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-bold mb-2">{idea.title}</h3>
-                  <p className="text-gray-600 mb-4 line-clamp-2">{idea.description}</p>
-                  
-                  {/* Funding Progress */}
-                  <div className="mb-4">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="font-medium">${idea.currentFunding.toLocaleString()} raised</span>
-                      <span className="text-gray-500">
-                        {Math.round((idea.currentFunding / idea.fundingGoal) * 100)}%
+          {loading ? (
+            <div className="text-center text-gray-500">Loading ideas...</div>
+          ) : error ? (
+            <div className="text-center text-red-500">{error}</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {featuredIdeas.map((idea) => (
+                <div key={idea.id} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow border border-gray-200">
+                  <img
+                    src={idea.imageUrl || 'https://via.placeholder.com/400x200?text=No+Image'}
+                    alt={idea.title}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="p-6">
+                    <div className="flex mb-2">
+                      <span className="inline-block px-2 py-1 text-xs font-medium bg-primary-50 text-primary-700 rounded-full">
+                        {idea.category}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-primary-600 h-2 rounded-full"
-                        style={{ width: `${Math.min(Math.round((idea.currentFunding / idea.fundingGoal) * 100), 100)}%` }}
-                      ></div>
+                    <h3 className="text-xl font-bold mb-2">{idea.title}</h3>
+                    <p className="text-gray-600 mb-4 line-clamp-2">{idea.description}</p>
+                    
+                    {/* Funding Progress */}
+                    <div className="mb-4">
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="font-medium">${Number(idea.currentFunding || idea.currentFunding || 0).toLocaleString()} raised</span>
+                        <span className="text-gray-500">
+                          {(idea.fundingGoal || idea.fundingGoal)
+                            ? Math.round(
+                                ((idea.currentFunding || idea.currentFunding || 0) /
+                                  (idea.fundingGoal || idea.fundingGoal)) * 100
+                              )
+                            : 0
+                          }%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-primary-600 h-2 rounded-full"
+                          style={{
+                            width: `${
+                              (idea.fundingGoal || idea.fundingGoal)
+                                ? Math.min(
+                                    Math.round(
+                                      ((idea.currentFunding || idea.currentFunding || 0) /
+                                        (idea.fundingGoal || idea.fundingGoal)) * 100
+                                    ),
+                                    100
+                                  )
+                                : 0
+                            }%`
+                          }}
+                        ></div>
+                      </div>
                     </div>
+                    
+                    <Link
+                      to={`/ideas/${idea.id}`}
+                      className="inline-flex items-center font-medium text-primary-600 hover:text-primary-700"
+                    >
+                      View details
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
                   </div>
-                  
-                  <Link
-                    to={`/ideas/${idea.id}`}
-                    className="inline-flex items-center font-medium text-primary-600 hover:text-primary-700"
-                  >
-                    View details
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
           
           <div className="text-center mt-10">
             <Link to="/ideas" className="btn btn-primary">

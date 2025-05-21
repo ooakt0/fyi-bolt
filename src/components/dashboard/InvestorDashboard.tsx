@@ -5,30 +5,22 @@ import { useAuthStore } from '../../store/authStore';
 import { supabase } from '../../store/authStore/supabaseClient';
 import { getMessagesForUser } from '../../data/mockData';
 import IdeaCard from '../ideas/IdeaCard';
+import { useIdeasStore } from '../../store/authStore/ideasStore';
 
 const InvestorDashboard: React.FC = () => {
   const { user } = useAuthStore();
+  const { ideas, loading, fetchIdeas } = useIdeasStore();
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [stageFilter, setStageFilter] = useState<string>('all');
-  const [ideas, setIdeas] = useState<any[]>([]);
   const [savedIdeas, setSavedIdeas] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [loadingSaved, setLoadingSaved] = useState(false);
 
   // Get messages
   const userMessages = user ? getMessagesForUser(user.id) : [];
 
   useEffect(() => {
-    const fetchIdeas = async () => {
-      setLoading(true);
-      const { data, error } = await supabase.from('ideas').select('*');
-      if (!error && data) {
-        setIdeas(data);
-      }
-      setLoading(false);
-    };
-    fetchIdeas();
-  }, []);
+    if (ideas.length === 0) fetchIdeas();
+  }, [ideas.length, fetchIdeas]);
 
   // Fetch saved ideas for the investor
   useEffect(() => {

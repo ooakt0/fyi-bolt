@@ -24,6 +24,14 @@ export interface Idea {
   stage: 'concept' | 'prototype' | 'mvp' | 'growth';
 }
 
+export interface IdeasStore {
+  ideas: Idea[];
+  loading: boolean;
+  error: string | null;
+  fetchIdeas: () => Promise<void>;
+  refreshIdeas: () => Promise<void>;
+}
+
 export interface Message {
   id: string;
   senderId: string;

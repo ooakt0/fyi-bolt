@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Search, Filter, Sliders } from 'lucide-react';
-import { supabase } from '../store/authStore/supabaseClient';
+import { useIdeasStore } from '../store/authStore/ideasStore';
 import IdeaCard from '../components/ideas/IdeaCard';
 
 const Ideas: React.FC = () => {
@@ -9,20 +9,11 @@ const Ideas: React.FC = () => {
   const [stageFilter, setStageFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [showFilters, setShowFilters] = useState(false);
-  const [ideas, setIdeas] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { ideas, loading, error, fetchIdeas } = useIdeasStore();
 
   useEffect(() => {
-    const fetchIdeas = async () => {
-      setLoading(true);
-      const { data, error } = await supabase.from('ideas').select('*');
-      if (!error && data) {
-        setIdeas(data);
-      }
-      setLoading(false);
-    };
-    fetchIdeas();
-  }, []);
+    if (ideas.length === 0) fetchIdeas();
+  }, [ideas.length, fetchIdeas]);
 
   // Get unique categories and stages for filters
   const categories = ['all', ...new Set(ideas.map(idea => idea.category))];
@@ -167,6 +158,8 @@ const Ideas: React.FC = () => {
         {/* Ideas Grid */}
         {loading ? (
           <div className="text-center py-16 bg-white rounded-lg shadow-sm">Loading ideas...</div>
+        ) : error ? (
+          <div className="text-center py-16 bg-white rounded-lg shadow-sm text-red-500">{error}</div>
         ) : sortedIdeas.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedIdeas.map((idea) => (
