@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, Navigate, useLocation } from 'react-router-dom';
+import { useParams, Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Share2, DollarSign, MessageSquare, Bookmark, Calendar, BarChart, Tag, Award } from 'lucide-react';
 import { Facebook, Instagram, Twitter, Linkedin, Copy } from 'lucide-react';
 import { mockIdeas } from '../data/mockData';
@@ -9,6 +9,7 @@ import { supabase } from '../store/authStore/supabaseClient';
 const IdeaDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
   const [idea, setIdea] = useState<any>(location.state?.idea || null);
   const [loading, setLoading] = useState(!location.state?.idea);
@@ -195,7 +196,18 @@ const IdeaDetails: React.FC = () => {
       <div className="pt-24 pb-12 bg-gray-50 min-h-screen">
         <div className="container-custom">
           <div className="mb-8">
-            <Link to="/ideas" className="text-primary-600 hover:text-primary-700 flex items-center text-sm">
+            <Link
+              to="#"
+              onClick={e => {
+                e.preventDefault();
+                if (location.key !== 'default') {
+                  navigate(-1);
+                } else {
+                  navigate('/ideas');
+                }
+              }}
+              className="text-primary-600 hover:text-primary-700 flex items-center text-sm"
+            >
               ← Back to ideas
             </Link>
           </div>
