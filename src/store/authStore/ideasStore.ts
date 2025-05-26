@@ -9,6 +9,7 @@ export const useIdeasStore = create<IdeasStore>((set) => ({
     error: null,
     fetchIdeas: async () => {
         set({ loading: true, error: null });
+        // Fetch all ideas, not just approved ones
         const { data, error } = await supabase.from('ideas').select('*');
         if (error) {
             set({ error: error.message, ideas: [], loading: false });
@@ -18,6 +19,7 @@ export const useIdeasStore = create<IdeasStore>((set) => ({
     },
     refreshIdeas: async () => {
         set({ loading: true, error: null });
+        // Fetch all ideas, not just approved ones
         const { data, error } = await supabase.from('ideas').select('*');
         if (error) {
             set({ error: error.message, ideas: [], loading: false });

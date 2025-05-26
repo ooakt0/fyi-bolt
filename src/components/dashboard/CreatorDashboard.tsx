@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PlusCircle, DollarSign, MessageSquare, TrendingUp, Users } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { supabase } from '../../store/authStore/supabaseClient';
@@ -14,6 +14,7 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ userIdeas, loadingI
   const { user } = useAuthStore();
   const [messages, setMessages] = useState<any[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -45,6 +46,9 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ userIdeas, loadingI
 
   // Calculate total funding raised
   const totalFunding = userIdeas.reduce((sum, idea) => sum + (idea.currentFunding || 0), 0);
+
+  // Filter ideas to only those created by the current user
+  const creatorIdeas = userIdeas.filter(idea => idea.creatorId === user?.id);
 
   return (
     <div className="space-y-8">
@@ -113,10 +117,26 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ userIdeas, loadingI
         </div>
         {loadingIdeas ? (
           <div className="text-center py-12">Loading your ideas...</div>
-        ) : userIdeas.length > 0 ? (
+        ) : creatorIdeas.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userIdeas.map((idea) => (
-              <IdeaCard key={idea.id} idea={idea} />
+            {creatorIdeas.map((idea) => (
+              <div key={idea.id} className="relative group">
+                <IdeaCard idea={idea} />
+                {!idea.approved && (
+                  <>
+                    <span className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded-full">Pending Approval</span>
+                    <button
+                      className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition bg-primary-600 text-white text-xs px-3 py-1 rounded shadow hover:bg-primary-700 z-10"
+                      style={{ pointerEvents: 'auto' }}
+                      onClick={() => navigate(`/ideas/edit/${idea.id}`)}
+                      title="Edit Idea"
+                      type="button"
+                    >
+                      Edit
+                    </button>
+                  </>
+                )}
+              </div>
             ))}
           </div>
         ) : (

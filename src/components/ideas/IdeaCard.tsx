@@ -53,6 +53,12 @@ const IdeaCard: React.FC<IdeaCardProps> = ({ idea, trending = false, onSave, isS
             <span className="inline-block px-2 py-1 text-xs font-medium bg-secondary-50 text-secondary-700 rounded-full mb-2 ml-1">
               {idea.stage.charAt(0).toUpperCase() + idea.stage.slice(1)}
             </span>
+            {/* Pending Approval badge for unapproved ideas */}
+            {typeof idea.approved === 'boolean' && !idea.approved && (
+              <span className="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full mb-2 ml-1">
+                Pending Approval
+              </span>
+            )}
           </div>
         </div>
         

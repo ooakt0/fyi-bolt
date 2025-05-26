@@ -14,6 +14,7 @@ export const mockIdeas: Idea[] = [
     imageUrl: 'https://images.pexels.com/photos/3698534/pexels-photo-3698534.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
     tags: ['sustainability', 'mobile', 'lifestyle', 'eco-friendly'],
     stage: 'prototype',
+    approved: false,
   },
   {
     id: '2',
@@ -26,8 +27,8 @@ export const mockIdeas: Idea[] = [
     currentFunding: 45000,
     createdAt: '2023-10-20T14:45:00Z',
     imageUrl: 'https://images.pexels.com/photos/8376566/pexels-photo-8376566.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    tags: ['healthcare', 'AI', 'wellness', 'telemedicine'],
     stage: 'mvp',
+    approved: false,
   },
   {
     id: '3',
@@ -39,9 +40,8 @@ export const mockIdeas: Idea[] = [
     fundingGoal: 35000,
     currentFunding: 8000,
     createdAt: '2023-12-05T09:15:00Z',
-    imageUrl: 'https://images.pexels.com/photos/696218/pexels-photo-696218.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    tags: ['food', 'local business', 'hospitality', 'community'],
     stage: 'concept',
+    approved: false,
   },
   {
     id: '4',
@@ -52,10 +52,11 @@ export const mockIdeas: Idea[] = [
     creatorName: 'Emily Educator',
     fundingGoal: 60000,
     currentFunding: 42000,
-    createdAt: '2023-09-10T11:20:00Z',
-    imageUrl: 'https://images.pexels.com/photos/4260482/pexels-photo-4260482.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    tags: ['education', 'e-learning', 'edtech', 'children'],
     stage: 'growth',
+    approved: false,
+    createdAt: '2023-09-10T11:20:00Z',
+    imageUrl: 'https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+    tags: ['education', 'interactive', 'gamification', 'k-12'],
   },
   {
     id: '5',
@@ -70,6 +71,7 @@ export const mockIdeas: Idea[] = [
     imageUrl: 'https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
     tags: ['remote work', 'collaboration', 'productivity', 'saas'],
     stage: 'prototype',
+    approved: false,
   },
   {
     id: '6',
@@ -84,6 +86,7 @@ export const mockIdeas: Idea[] = [
     imageUrl: 'https://images.pexels.com/photos/210182/pexels-photo-210182.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
     tags: ['transportation', 'sustainability', 'urban mobility', 'sharing economy'],
     stage: 'concept',
+    approved: false,
   },
 ];
 

@@ -17,8 +17,21 @@ const initialForm: Record<string, string> = {
   marketOpportunity: '',
 };
 
-const IdeaForm: React.FC = () => {
-  const [form, setForm] = useState(initialForm);
+// Accept an optional prop for editing an existing idea
+interface IdeaFormProps {
+  ideaToEdit?: any;
+}
+
+const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
+  const [form, setForm] = useState(ideaToEdit ? {
+    ...initialForm,
+    ...ideaToEdit,
+    aboutThisIdea: ideaToEdit?.about_this_idea || '',
+    keyFeatures: Array.isArray(ideaToEdit?.key_features) ? ideaToEdit.key_features.join('\n') : (ideaToEdit?.key_features || ''),
+    marketOpportunity: ideaToEdit?.market_opportunity || '',
+    tags: Array.isArray(ideaToEdit?.tags) ? ideaToEdit.tags.join(', ') : (ideaToEdit?.tags || ''),
+    fundingGoal: ideaToEdit?.fundingGoal?.toString() || '',
+  } : initialForm);
   const [step, setStep] = useState<'form' | 'verify' | 'submitting' | 'done'>('form');
   const { user } = useAuthStore();
   const navigate = useNavigate();
@@ -108,7 +121,7 @@ const IdeaForm: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setForm(f => ({
+    setForm((f: Record<string, string>) => ({
       ...f,
       // Combine the 3 description fields for legacy/compatibility
       description: `About This Idea:\n${f.aboutThisIdea || ''}\n\nKey Features:\n${f.keyFeatures || ''}\n\nMarket Opportunity:\n${f.marketOpportunity || ''}`.trim()
@@ -123,26 +136,45 @@ const IdeaForm: React.FC = () => {
       return;
     }
     try {
-      const result = await supabase.from('ideas').insert([
-        {
+      let result;
+      if (ideaToEdit) {
+        // Update existing idea
+        result = await supabase.from('ideas').update({
           title: form.title,
-          description: form.description, // legacy/compatibility
+          description: form.description,
           about_this_idea: form.aboutThisIdea,
-          key_features: form.keyFeatures.split('\n').map(s => s.trim()).filter(Boolean),
+          key_features: form.keyFeatures.split('\n').map((s: string) => s.trim()).filter(Boolean),
           market_opportunity: form.marketOpportunity,
           imageUrl: form.imageUrl,
           category: form.category,
           stage: form.stage,
           fundingGoal: Number(form.fundingGoal),
-          funds_collected: form.fundsCollected ? Number(form.fundsCollected) : 0,
-          tags: form.tags.split(',').map((t) => t.trim()),
-          creatorId: user.id,
-          creatorName: user.name,
-          currentFunding: 0, // deprecated, use funds_collected
-          createdAt: new Date().toISOString(),
-        },
-      ]);
-      console.log('Supabase insert result:', result);
+          tags: form.tags.split(',').map((t: string) => t.trim()),
+          // Do not update approval status here
+        }).eq('id', ideaToEdit.id);
+      } else {
+        // Insert new idea
+        result = await supabase.from('ideas').insert([
+          {
+            title: form.title,
+            description: form.description, // legacy/compatibility
+            about_this_idea: form.aboutThisIdea,
+            key_features: form.keyFeatures.split('\n').map((s: string) => s.trim()).filter(Boolean),
+            market_opportunity: form.marketOpportunity,
+            imageUrl: form.imageUrl,
+            category: form.category,
+            stage: form.stage,
+            fundingGoal: Number(form.fundingGoal),
+            funds_collected: form.fundsCollected ? Number(form.fundsCollected) : 0,
+            tags: form.tags.split(',').map((t: string) => t.trim()),
+            creatorId: user.id,
+            creatorName: user.name,
+            currentFunding: 0, // deprecated, use funds_collected
+            createdAt: new Date().toISOString(),
+            approved: false, // New ideas are unapproved by default
+          },
+        ]);
+      }
       if (result.error) throw result.error;
       setStep('done');
       setTimeout(() => navigate('/dashboard'), 1500);
@@ -154,6 +186,13 @@ const IdeaForm: React.FC = () => {
   const handleBackToDashboard = () => {
     navigate('/dashboard');
   };
+
+  // If editing, always start on the verify step
+  React.useEffect(() => {
+    if (ideaToEdit) {
+      setStep('verify');
+    }
+  }, [ideaToEdit]);
 
   if (step === 'verify') {
     return (
@@ -178,7 +217,7 @@ const IdeaForm: React.FC = () => {
             <div>
               <div className="text-base font-semibold text-purple-700 mb-1">Key Features</div>
               <ul className="bg-white rounded-lg border border-purple-100 px-4 py-3 text-gray-800 list-disc list-inside">
-                {form.keyFeatures.split('\n').filter(Boolean).map((feature, idx) => (
+                {form.keyFeatures.split('\n').filter(Boolean).map((feature: string, idx: number) => (
                   <li key={idx}>{feature}</li>
                 ))}
               </ul>
@@ -209,7 +248,7 @@ const IdeaForm: React.FC = () => {
               <div>
                 <div className="text-base font-semibold text-purple-700 mb-1">Tags</div>
                 <div className="bg-white rounded-lg border border-purple-100 px-4 py-3 text-gray-800">
-                  {form.tags.split(',').map((tag, idx) => (
+                  {form.tags.split(',').map((tag: string, idx: number) => (
                     <span key={idx} className="inline-block bg-purple-100 text-purple-700 rounded px-2 py-1 mr-2 mb-1 text-xs font-medium">{tag.trim()}</span>
                   ))}
                 </div>
