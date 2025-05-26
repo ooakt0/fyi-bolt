@@ -12,6 +12,7 @@ import HowItWorks from './pages/HowItWorks';
 import IdeaForm from './pages/IdeaForm';
 import SavedIdeas from './pages/SavedIdeas';
 import Profile from './pages/Profile';
+import EditIdeaPage from './pages/EditIdeaPage';
 import { useAuthStore, initializeAuthStore } from './store/authStore';
 
 const App: React.FC = () => {
@@ -68,6 +69,7 @@ const App: React.FC = () => {
                 </ProtectedRoute>
               }
             />
+            <Route path="/ideas/edit/:id" element={<EditIdeaPage />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>

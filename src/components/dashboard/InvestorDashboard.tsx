@@ -68,7 +68,7 @@ const InvestorDashboard: React.FC = () => {
   const filteredIdeas = ideas.filter(idea => {
     const matchesCategory = categoryFilter === 'all' || idea.category === categoryFilter;
     const matchesStage = stageFilter === 'all' || idea.stage === stageFilter;
-    return matchesCategory && matchesStage;
+    return idea.approved && matchesCategory && matchesStage;
   });
 
   // Get unique categories and stages for filters

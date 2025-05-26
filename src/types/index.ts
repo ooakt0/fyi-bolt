@@ -22,6 +22,7 @@ export interface Idea {
   imageUrl: string;
   tags: string[];
   stage: 'concept' | 'prototype' | 'mvp' | 'growth';
+  approved: boolean;
 }
 
 export interface IdeasStore {

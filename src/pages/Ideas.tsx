@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Filter, Sliders } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
 import { useIdeasStore } from '../store/authStore/ideasStore';
 import IdeaCard from '../components/ideas/IdeaCard';
 
@@ -28,7 +28,7 @@ const Ideas: React.FC = () => {
     const matchesCategory = categoryFilter === 'all' || idea.category === categoryFilter;
     const matchesStage = stageFilter === 'all' || idea.stage === stageFilter;
     
-    return matchesSearch && matchesCategory && matchesStage;
+    return idea.approved && matchesSearch && matchesCategory && matchesStage;
   });
   
   // Sort ideas
