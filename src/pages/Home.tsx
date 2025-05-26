@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Lightbulb as LightBulb, ArrowRight, BarChart, Users, PieChart, DollarSign, CheckCircle } from 'lucide-react';
 import { useIdeasStore } from '../store/authStore/ideasStore';
-// import {IdeasStore}
+
 
 const Home: React.FC = () => {
   const { ideas, loading, error, fetchIdeas } = useIdeasStore();
@@ -11,10 +12,14 @@ const Home: React.FC = () => {
     if (ideas.length === 0) fetchIdeas();
   }, [ideas.length, fetchIdeas]);
 
-  const featuredIdeas = ideas.slice(0, 3);
+  // Only show approved ideas in featured section
+  const featuredIdeas = ideas.filter(i => i.approved).slice(0, 3);
 
   return (
     <div className="flex flex-col min-h-screen">
+      <Helmet>
+        <title>FundYourIdea | Smarter Crowdfunding Platform</title>
+      </Helmet>
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary-900 via-primary-800 to-secondary-900 text-white py-20 md:py-28">
         <div className="container-custom px-4 sm:px-6 lg:px-8">
@@ -22,10 +27,10 @@ const Home: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div className="md:w-1/2 md:pr-8">
                 <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4 animate-slide-up">
-                  Turn Your Ideas Into <span className="text-accent-300">Reality</span>
+                  Launch Smarter. <span className="text-accent-300">Fund Faster.</span>
                 </h1>
                 <p className="text-lg md:text-xl text-gray-200 mb-8 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                  Connect with investors who believe in your vision and get the resources you need to bring your ideas to life.
+                  Validate your idea, match with micro-investors, and bring your innovation to life.
                 </p>
                 <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
                   <Link to="/signup" className="btn bg-accent-500 hover:bg-accent-600 text-white px-6 py-3 rounded-md text-lg">
@@ -42,6 +47,29 @@ const Home: React.FC = () => {
                   alt="Startup team meeting" 
                   className="rounded-lg shadow-2xl"
                 />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How FundYourIdea is Different Section */}
+      <section className="py-12 bg-white border-b border-gray-100">
+        <div className="container-custom max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 text-center">How FundYourIdea is Different</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="flex items-start bg-primary-50 rounded-lg p-6 shadow-sm">
+              <span className="text-2xl md:text-3xl mr-4">✅</span>
+              <div>
+                <h3 className="text-lg md:text-xl font-semibold text-primary-800 mb-1">Built-In Idea Validation</h3>
+                <p className="text-gray-700 text-base">Use AI to help creators refine their pitch with SWOT analysis, user personas, and market mapping—so your idea is investor-ready from day one.</p>
+              </div>
+            </div>
+            <div className="flex items-start bg-secondary-50 rounded-lg p-6 shadow-sm">
+              <span className="text-2xl md:text-3xl mr-4">🤝</span>
+              <div>
+                <h3 className="text-lg md:text-xl font-semibold text-secondary-800 mb-1">Micro-Angel Matchmaking</h3>
+                <p className="text-gray-700 text-base">Connect with verified micro-investors based on your idea's category and their interests—making funding more accessible and personal.</p>
               </div>
             </div>
           </div>
@@ -140,9 +168,9 @@ const Home: React.FC = () => {
                             ? Math.round(
                                 ((idea.currentFunding || idea.currentFunding || 0) /
                                   (idea.fundingGoal || idea.fundingGoal)) * 100
-                              )
-                            : 0
-                          }%
+                          )
+                          : 0
+                        }%
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
