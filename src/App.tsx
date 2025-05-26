@@ -15,6 +15,7 @@ import Profile from './pages/Profile';
 import EditIdeaPage from './pages/EditIdeaPage';
 import { useAuthStore, initializeAuthStore } from './store/authStore';
 import { useAutoLogoutOnInactivity } from './hooks/useAutoLogoutOnInactivity';
+import ScrollToTop from './components/layout/ScrollToTop';
 
 const App: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
@@ -36,6 +37,7 @@ const App: React.FC = () => {
 
   return (
     <Router>
+      <ScrollToTop />
       <div className="flex flex-col min-h-screen">
         <Header />
         <main className="flex-grow">
