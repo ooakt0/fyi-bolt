@@ -138,8 +138,8 @@ const IdeaDetails: React.FC = () => {
         alert('Instagram does not support direct web sharing. Copy the link and share it on your Instagram profile or story.');
         return;
       case 'copy':
-        navigator.clipboard.writeText(shareText);
-        alert('Link and info copied to clipboard!');
+        navigator.clipboard.writeText(shareUrl);
+        alert('Link copied to clipboard!');
         return;
       default:
         return;
