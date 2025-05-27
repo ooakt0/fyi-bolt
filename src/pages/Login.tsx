@@ -16,7 +16,7 @@ const Login: React.FC = () => {
     if (hash && hash.includes('access_token')) {
       setChecking(true);
       // Supabase will automatically handle the session, just wait for auth state
-      const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (session && session.user) {
           setChecking(false);
           navigate('/dashboard', { replace: true });
@@ -26,10 +26,14 @@ const Login: React.FC = () => {
         }
       });
       // Also check session directly in case already set
-      supabase.auth.getSession().then(({ data, error }) => {
+      supabase.auth.getSession().then(async ({ data, error }) => {
         if (data?.session && data.session.user) {
           setChecking(false);
           navigate('/dashboard', { replace: true });
+        } else if (error?.message === "Session from session_id claim in JWT does not exist") {
+          setChecking(false);
+          setError('Session not found. Logging out...');
+          await useAuthStore.getState().logout(); // Log the user out
         } else if (error) {
           setChecking(false);
           setError('Could not complete sign in. Please try again.');
