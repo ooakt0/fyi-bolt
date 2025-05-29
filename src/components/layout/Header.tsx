@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Lightbulb, DollarSign, User, LogOut } from 'lucide-react';
+import { Menu, X, LogOut, User } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
 const Header: React.FC = () => {
@@ -27,7 +27,11 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <Lightbulb className="h-8 w-8 text-primary-600" />
+            <img 
+              src="/images/logo2.png" 
+              alt="Fund Your Idea Logo" 
+              className="h-10 w-auto"
+            />
             <span className="text-xl font-bold text-gray-900">Fund Your Idea</span>
           </Link>
 

@@ -60,11 +60,23 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
     },
     {
       label: 'Category',
-      description: 'Select the category that best fits your idea.',
+      description: 'Select the category that best fits your idea, or add a new one.',
       name: 'category',
-      type: 'select',
-      options: ['Mobile App', 'Healthcare', 'Food & Beverage', 'Education', 'Productivity', 'Transportation'],
-      placeholder: 'Choose a category',
+      type: 'select-or-custom',
+      options: [
+        'Mobile App',
+        'Healthcare',
+        'Food & Beverage',
+        'Education',
+        'Productivity',
+        'Transportation',
+        'FinTech',
+        'E-commerce',
+        'SaaS',
+        'Social Impact',
+        'Other',
+      ],
+      placeholder: 'Choose a category or enter your own',
     },
     {
       label: 'Stage',
@@ -129,8 +141,11 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
     setStep('verify');
   };
 
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const handleConfirm = async () => {
     setStep('submitting');
+    setSubmitError(null);
     if (!user) {
       setStep('form');
       return;
@@ -150,6 +165,7 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
           stage: form.stage,
           fundingGoal: Number(form.fundingGoal),
           tags: form.tags.split(',').map((t: string) => t.trim()),
+          ...(form.supportingDocUrl ? { supporting_doc_url: form.supportingDocUrl, supporting_doc_name: form.supportingDoc } : {}),
           // Do not update approval status here
         }).eq('id', ideaToEdit.id);
       } else {
@@ -172,6 +188,7 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
             currentFunding: 0, // deprecated, use funds_collected
             createdAt: new Date().toISOString(),
             approved: false, // New ideas are unapproved by default
+            ...(form.supportingDocUrl ? { supporting_doc_url: form.supportingDocUrl, supporting_doc_name: form.supportingDoc } : {}),
           },
         ]);
       }
@@ -179,7 +196,8 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
       setStep('done');
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err: any) {
-      setStep('form');
+      setSubmitError('Failed to submit idea. Please try again.');
+      setStep('verify');
     }
   };
 
@@ -193,6 +211,18 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
       setStep('verify');
     }
   }, [ideaToEdit]);
+
+  const uploadIdeaDocument = async (file: File, userId: string) => {
+    const filePath = `${userId}/${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage.from('idea-docs').upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false,
+    });
+    if (error) throw error;
+    // Get public URL
+    const { publicUrl } = supabase.storage.from('idea-docs').getPublicUrl(filePath).data;
+    return publicUrl;
+  };
 
   if (step === 'verify') {
     return (
@@ -254,9 +284,16 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
                 </div>
               </div>
             </div>
+            {form.supportingDoc && form.supportingDocUrl && (
+              <div>
+                <div className="text-base font-semibold text-purple-700 mb-1">Supporting Document</div>
+                <a href={form.supportingDocUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 underline">{form.supportingDoc}</a>
+              </div>
+            )}
           </div>
+          {submitError && <div className="text-red-600 mt-4 text-center">{submitError}</div>}
           <div className="flex gap-4 mt-10">
-            <button className="flex-1 py-3 rounded-lg font-bold text-white bg-purple-600 hover:bg-purple-700 transition duration-200" onClick={handleConfirm}>Confirm & Create</button>
+            <button className="flex-1 py-3 rounded-lg font-bold text-white bg-purple-600 hover:bg-purple-700 transition duration-200 disabled:opacity-60" onClick={handleConfirm}>Confirm & Create</button>
             <button className="flex-1 py-3 rounded-lg font-bold text-purple-700 bg-purple-100 hover:bg-purple-200 transition duration-200" onClick={() => setStep('form')}>Edit</button>
           </div>
         </div>
@@ -335,6 +372,7 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
                   required
                   rows={3}
                 />
+                
               </div>
               <div>
                 <label className="block text-base font-semibold text-purple-800 mb-1">Key Features</label>
@@ -362,6 +400,32 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
                   rows={3}
                 />
               </div>
+              <div className="mt-2 bg-secondary-100 rounded p-4">
+                <label className="block text-sm font-medium text-secondary-700 mb-1">Upload Supporting Document (PDF or DOCX)</label>
+                <p className="text-xs text-secondary-700 mb-2">If you have a document explaining your idea in detail, you can upload it here. (Optional)</p>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
+                  className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-secondary-50 file:text-secondary-700 hover:file:bg-secondary-200"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file || !user) return;
+                    try {
+                      console.log('Uploading file:', file);
+                      // Upload to Supabase Storage
+                      const url = await uploadIdeaDocument(file, user.id);
+                      console.log('Upload successful, url:', url);
+                      setForm((f: Record<string, string>) => ({ ...f, supportingDoc: file.name, supportingDocUrl: url }));
+                    } catch (err: any) {
+                      console.error('Failed to upload document:', err?.message || err);
+                      alert('Failed to upload document: ' + (err?.message || err));
+                    }
+                  }}
+                />
+                {form.supportingDoc && (
+                  <div className="mt-1 text-xs text-green-700">Uploaded: {form.supportingDoc}</div>
+                )}
+              </div>
             </div>
           ) : currentStep.type === 'textarea' ? (
             <textarea
@@ -386,6 +450,29 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
+          ) : currentStep.type === 'select-or-custom' ? (
+            <div>
+              <select
+                name={currentStep.name}
+                className="w-full px-4 py-3 rounded-lg border border-purple-200 focus:border-purple-500 bg-purple-50 focus:bg-white transition duration-200 mb-2"
+                value={form[currentStep.name] && Array.isArray(currentStep.options) && currentStep.options.includes(form[currentStep.name]) ? form[currentStep.name] : ''}
+                onChange={e => {
+                  setForm({ ...form, [currentStep.name]: e.target.value });
+                }}
+              >
+                <option value="" disabled>{currentStep.placeholder}</option>
+                {Array.isArray(currentStep.options) && currentStep.options.map((opt: string) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                className="w-full px-4 py-3 rounded-lg border border-purple-200 focus:border-purple-500 bg-purple-50 focus:bg-white transition duration-200 mb-2 mt-2"
+                placeholder="Or enter a new category"
+                value={form[currentStep.name] && (!Array.isArray(currentStep.options) || !currentStep.options.includes(form[currentStep.name])) ? form[currentStep.name] : ''}
+                onChange={e => setForm({ ...form, [currentStep.name]: e.target.value })}
+              />
+            </div>
           ) : (
             <input
               name={currentStep.name}
@@ -416,11 +503,11 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
               ${isFieldValid() ? 'bg-purple-600 hover:bg-purple-700' : 'bg-purple-300 cursor-not-allowed'}`}
             onClick={() => {
               if (activeStep < steps.length - 1) handleStepChange(1);
-              else handleSubmit(new Event('submit') as any);
+              else setStep('verify');
             }}
             disabled={!isFieldValid()}
           >
-            {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
+            {activeStep === steps.length - 1 ? 'Verify' : 'Next'}
           </button>
         </div>
       </div>
