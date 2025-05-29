@@ -16,12 +16,12 @@ const Home: React.FC = () => {
   const featuredIdeas = ideas.filter(i => i.approved).slice(0, 3);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen container-custom ">
       <Helmet>
         <title>FundYourIdea | Smarter Crowdfunding Platform</title>
       </Helmet>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-900 via-primary-800 to-secondary-900 text-white py-20 md:py-28">
+      <section className="bg-gradient-to-br from-primary-900 via-primary-800 to-secondary-900 text-white py-20 md:py-28 rounded-3xl shadow-lg">
         <div className="container-custom px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">

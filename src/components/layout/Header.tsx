@@ -46,6 +46,9 @@ const Header: React.FC = () => {
             <Link to="/how-it-works" className={`text-base font-medium ${isActive('/how-it-works') ? 'text-primary-600' : 'text-gray-600 hover:text-gray-900'}`}>
               How It Works
             </Link>
+            <Link to="/services" className={`text-base font-medium ${isActive('/services') ? 'text-primary-600' : 'text-gray-600 hover:text-gray-900'}`}>
+              Services
+            </Link>
             
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
@@ -134,6 +137,13 @@ const Header: React.FC = () => {
               onClick={closeMenu}
             >
               How It Works
+            </Link>
+            <Link 
+              to="/services" 
+              className={`block px-3 py-2 rounded-md text-base font-medium ${isActive('/services') ? 'bg-primary-50 text-primary-600' : 'text-gray-700 hover:bg-gray-50'}`}
+              onClick={closeMenu}
+            >
+              Services
             </Link>
 
             {isAuthenticated ? (
