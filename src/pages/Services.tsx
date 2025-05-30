@@ -9,7 +9,7 @@ const services = [
     description:
       'Build fast, responsive, and SEO-friendly static websites. Perfect for businesses looking to establish a strong online presence.',
     image: '/images/staticWebDevelopment.png',
-    route: 'static-web-development',
+    // route: 'static-web-development',
   },
   {
     icon: <Video className="h-8 w-8 text-primary-600" />,
@@ -17,7 +17,7 @@ const services = [
     description:
       'Create engaging videos using AI-powered tools. Ideal for marketing campaigns and social media content.',
     image: '/images/aiVideoCreation.png',
-    route: 'ai-video-creation',
+    // route: 'ai-video-creation',
   },
   {
     icon: <Brush className="h-8 w-8 text-primary-600" />,
@@ -25,7 +25,7 @@ const services = [
     description:
       'Craft unique brand identities and stunning designs that resonate with your audience.',
     image: '/images/brandingNdesign.png',
-    route: 'branding-and-design',
+    // route: 'branding-and-design',
   },
   {
     icon: <Smartphone className="h-8 w-8 text-primary-600" />,
@@ -33,7 +33,7 @@ const services = [
     description:
       'Design and prototype mobile and web applications to bring your ideas to life.',
     image: '/images/appPrototyping.png',
-    route: 'app-prototyping',
+    // route: 'app-prototyping',
   },
   {
     icon: <FileText className="h-8 w-8 text-primary-600" />,
@@ -41,7 +41,7 @@ const services = [
     description:
       'Develop comprehensive business plans tailored to your startup’s needs.',
     image: '/images/businessPlan.png',
-    route: 'business-plan-writing',
+    // route: 'business-plan-writing',
   },
   {
     icon: <Search className="h-8 w-8 text-primary-600" />,
@@ -49,7 +49,7 @@ const services = [
     description:
       'Boost your online presence with expert SEO strategies and digital marketing campaigns.',
     image: '/images/seoDigitalMarketing.png',
-    route: 'seo-digital-marketing',
+    // route: 'seo-digital-marketing',
   },
 ];
 
@@ -71,7 +71,7 @@ const Services: React.FC = () => {
               <div
                 key={index}
                 className="bg-white p-4 rounded-lg shadow-md text-center border border-gray-200 transition-transform transform hover:scale-105 cursor-pointer"
-                onClick={() => window.location.href = `/services/${service.route}`}
+                // onClick={() => window.location.href = `/services/${service.route}`}
               >
                 <img src={service.image} alt={service.title} className="w-full h-80 object-cover rounded-md mb-4" />
                 <div className="mb-4 flex justify-center">{service.icon}</div>

@@ -91,12 +91,12 @@ const App: React.FC = () => {
               />
               <Route path="/ideas/edit/:id" element={<EditIdeaPage />} />
               <Route path="/services" element={<Services />} />
-              <Route path="/services/static-web-development" element={<StaticWebDevelopment />} />
+              {/* <Route path="/services/static-web-development" element={<StaticWebDevelopment />} />
               <Route path="/services/ai-video-creation" element={<AIVideoCreation />} />
               <Route path="/services/app-prototyping" element={<AppPrototyping />} />
               <Route path="/services/branding-and-design" element={<BrandingAndDesign />} />
               <Route path="/services/business-plan-writing" element={<BusinessPlanWriting />} />
-              <Route path="/services/seo-digital-marketing" element={<SEODigitalMarketing />} />
+              <Route path="/services/seo-digital-marketing" element={<SEODigitalMarketing />} /> */}
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </main>
