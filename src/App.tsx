@@ -14,9 +14,17 @@ import IdeaForm from './pages/IdeaForm';
 import SavedIdeas from './pages/SavedIdeas';
 import Profile from './pages/Profile';
 import EditIdeaPage from './pages/EditIdeaPage';
+import Services from './pages/Services';
+import StaticWebDevelopment from './pages/services/StaticWebDevelopment';
+import AIVideoCreation from './pages/services/AIVideoCreation';
+import AppPrototyping from './pages/services/AppPrototyping';
+import BrandingAndDesign from './pages/services/BrandingAndDesign';
+import BusinessPlanWriting from './pages/services/BusinessPlanWriting';
+import SEODigitalMarketing from './pages/services/SEODigitalMarketing';
 import { useAuthStore, initializeAuthStore } from './store/authStore';
 import { useAutoLogoutOnInactivity } from './hooks/useAutoLogoutOnInactivity';
 import ScrollToTop from './components/layout/ScrollToTop';
+
 
 const App: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
@@ -38,7 +46,12 @@ const App: React.FC = () => {
 
   return (
     <HelmetProvider>
-      <Router>
+      <Router
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true
+        }}
+      >
         <ScrollToTop />
         <div className="flex flex-col min-h-screen">
           <Header />
@@ -77,6 +90,13 @@ const App: React.FC = () => {
                 }
               />
               <Route path="/ideas/edit/:id" element={<EditIdeaPage />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/services/static-web-development" element={<StaticWebDevelopment />} />
+              <Route path="/services/ai-video-creation" element={<AIVideoCreation />} />
+              <Route path="/services/app-prototyping" element={<AppPrototyping />} />
+              <Route path="/services/branding-and-design" element={<BrandingAndDesign />} />
+              <Route path="/services/business-plan-writing" element={<BusinessPlanWriting />} />
+              <Route path="/services/seo-digital-marketing" element={<SEODigitalMarketing />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </main>
