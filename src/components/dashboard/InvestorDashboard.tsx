@@ -17,21 +17,9 @@ const InvestorDashboard: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [showInvestments, setShowInvestments] = useState(false);
 
-  // Mock investment data
-  const mockInvestments = [
-    {
-      ideaId: '1',//'b5a22b6a-25b1-499b-bde6-502f3f4d2090',
-      investedAmount: '$5,000',
-      investedDate: '2025-05-01',
-      invoiceLink: '/path/to/invoice1.pdf',
-    },
-    {
-      ideaId: '2',//'c1556d0a-284a-49fd-92cf-b94869374b9d',
-      investedAmount: '$10,000',
-      investedDate: '2025-04-15',
-      invoiceLink: '/path/to/invoice2.pdf',
-    },
-  ];
+  // Fetch investments for the logged-in investor
+  const [investments, setInvestments] = useState<any[]>([]);
+  const [loadingInvestments, setLoadingInvestments] = useState(false);
 
   // Get messages
   const userMessages = user ? getMessagesForUser(user.id) : [];
@@ -55,6 +43,23 @@ const InvestorDashboard: React.FC = () => {
       setLoadingSaved(false);
     };
     fetchSavedIdeas();
+  }, [user]);
+
+  // Fetch investments for the logged-in investor
+  useEffect(() => {
+    const fetchInvestments = async () => {
+      if (!user) return;
+      setLoadingInvestments(true);
+      const { data, error } = await supabase
+        .from('investments')
+        .select('*')
+        .eq('invested_by', user.id);
+      if (!error && data) {
+        setInvestments(data);
+      }
+      setLoadingInvestments(false);
+    };
+    fetchInvestments();
   }, [user]);
 
   // Save/Unsave handler
@@ -95,9 +100,9 @@ const InvestorDashboard: React.FC = () => {
     setSearchText('');
   };
 
-  // Filter invested ideas based on mock investment data
+  // Filter invested ideas based on real investment data
   const investedIdeas = ideas.filter(idea =>
-    mockInvestments.some(investment => investment.ideaId === idea.id)
+    investments.some(investment => investment.idea_id === idea.id)
   );
 
   // Search change handler
@@ -199,16 +204,17 @@ const InvestorDashboard: React.FC = () => {
         {showInvestments && investedIdeas.length > 0 && (
           <div className="bg-[#d3eaf2] rounded-lg shadow-sm p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
             {investedIdeas.map(idea => {
-              const investment = mockInvestments.find(inv => inv.ideaId === idea.id);
+              // Find the investment for this idea
+              const investment = investments.find(inv => inv.idea_id === idea.id);
               return (
                 <IdeaCard
                   key={idea.id}
                   idea={idea}
-                  additionalInfo={{
-                    investedAmount: investment?.investedAmount,
-                    investedDate: investment?.investedDate,
-                    invoiceLink: investment?.invoiceLink,
-                  }}
+                  additionalInfo={investment ? {
+                    investedAmount: investment.invested_amount ? `$${Number(investment.invested_amount).toLocaleString()}` : undefined,
+                    investedDate: investment.invested_date,
+                    invoiceLink: investment.invoice_link,
+                  } : undefined}
                 />
               );
             })}
