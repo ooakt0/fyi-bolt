@@ -3,14 +3,19 @@ import { Link } from 'react-router-dom';
 import { Bookmark, TrendingUp } from 'lucide-react';
 import { Idea } from '../../types';
 
-interface IdeaCardProps {
+export interface IdeaCardProps {
   idea: Idea;
   trending?: boolean;
   onSave?: () => void;
   isSaved?: boolean;
+  additionalInfo?: {
+    investedAmount?: string;
+    investedDate?: string;
+    invoiceLink?: string;
+  };
 }
 
-const IdeaCard: React.FC<IdeaCardProps> = ({ idea, trending = false, onSave, isSaved }) => {
+const IdeaCard: React.FC<IdeaCardProps> = ({ idea, trending = false, onSave, isSaved, additionalInfo }) => {
   const fundingPercentage = Math.min(Math.round((idea.currentFunding / idea.fundingGoal) * 100), 100);
   
   return (
@@ -97,6 +102,22 @@ const IdeaCard: React.FC<IdeaCardProps> = ({ idea, trending = false, onSave, isS
             View details
           </Link>
         </div>
+
+        {/* Additional Investment Info */}
+        {additionalInfo && (
+          <div className="mt-4 bg-[#bee0ec] p-4 rounded-md">
+            <p className="text-sm text-gray-600">Invested Amount: {additionalInfo.investedAmount}</p>
+            <p className="text-sm text-gray-600">Invested Date: {additionalInfo.investedDate}</p>
+            <a
+              href={additionalInfo.invoiceLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-primary-600 hover:text-primary-800"
+            >
+              View Invoice
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );

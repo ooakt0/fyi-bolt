@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, BookmarkPlus, DollarSign, Briefcase, TrendingUp } from 'lucide-react';
+import { Search, Filter, BookmarkPlus, DollarSign, Briefcase, TrendingUp, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { supabase } from '../../store/authStore/supabaseClient';
 import { getMessagesForUser } from '../../data/mockData';
@@ -14,6 +14,12 @@ const InvestorDashboard: React.FC = () => {
   const [stageFilter, setStageFilter] = useState<string>('all');
   const [savedIdeas, setSavedIdeas] = useState<any[]>([]);
   const [loadingSaved, setLoadingSaved] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [showInvestments, setShowInvestments] = useState(false);
+
+  // Fetch investments for the logged-in investor
+  const [investments, setInvestments] = useState<any[]>([]);
+  const [loadingInvestments, setLoadingInvestments] = useState(false);
 
   // Get messages
   const userMessages = user ? getMessagesForUser(user.id) : [];
@@ -37,6 +43,23 @@ const InvestorDashboard: React.FC = () => {
       setLoadingSaved(false);
     };
     fetchSavedIdeas();
+  }, [user]);
+
+  // Fetch investments for the logged-in investor
+  useEffect(() => {
+    const fetchInvestments = async () => {
+      if (!user) return;
+      setLoadingInvestments(true);
+      const { data, error } = await supabase
+        .from('investments')
+        .select('*')
+        .eq('invested_by', user.id);
+      if (!error && data) {
+        setInvestments(data);
+      }
+      setLoadingInvestments(false);
+    };
+    fetchInvestments();
   }, [user]);
 
   // Save/Unsave handler
@@ -64,16 +87,29 @@ const InvestorDashboard: React.FC = () => {
     if (data) setSavedIdeas(data.map((row: any) => row.ideas));
   };
 
-  // Get ideas with filters
+  // Update the filtering logic to use 'title' instead of 'name'
   const filteredIdeas = ideas.filter(idea => {
     const matchesCategory = categoryFilter === 'all' || idea.category === categoryFilter;
     const matchesStage = stageFilter === 'all' || idea.stage === stageFilter;
-    return idea.approved && matchesCategory && matchesStage;
+    const matchesSearch = searchText === '' || idea.title.toLowerCase().includes(searchText.toLowerCase());
+    return idea.approved && matchesCategory && matchesStage && matchesSearch;
   });
 
-  // Get unique categories and stages for filters
-  const categories = ['all', ...new Set(ideas.map(idea => idea.category))];
-  const stages = ['all', ...new Set(ideas.map(idea => idea.stage))];
+  // Clear search text
+  const clearSearch = () => {
+    setSearchText('');
+  };
+
+  // Filter invested ideas based on real investment data
+  const investedIdeas = ideas.filter(idea =>
+    investments.some(investment => investment.idea_id === idea.id)
+  );
+
+  // Search change handler
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchText(e.target.value);
+    setShowInvestments(false);
+  };
 
   return (
     <div className="space-y-8">
@@ -81,14 +117,35 @@ const InvestorDashboard: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user?.name}!</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Welcome {user?.role.toUpperCase()}, {user?.name}!</h1>
             <p className="mt-1 text-gray-600">Discover promising ideas and find your next investment opportunity</p>
           </div>
-          <div className="mt-4 md:mt-0">
+          <div className="mt-4 md:mt-0 flex items-center space-x-2">
             <Link to="/ideas/saved" className="btn btn-outline inline-flex items-center">
               <BookmarkPlus className="mr-2 h-5 w-5" />
               Saved Ideas
             </Link>
+            <div className="relative">
+              <input
+                type="text"
+                value={searchText}
+                onChange={handleSearchChange}
+                placeholder="Search ideas by name..."
+                className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+              />
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                {searchText ? (
+                  <button
+                    onClick={clearSearch}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                ) : (
+                  <Search className="h-5 w-5 text-gray-400" />
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -134,58 +191,46 @@ const InvestorDashboard: React.FC = () => {
         </div>
       </div>
       
-      {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4">
-          <div className="flex-1">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search ideas by keyword..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-              />
-            </div>
+      {/* Investment Section */}
+      <div className="bg-[#bee0ec] rounded-lg shadow-sm p-6">
+        <button
+          onClick={() => setShowInvestments(!showInvestments)}
+          className="text-lg font-bold text-gray-900 flex items-center"
+        >
+          {showInvestments ? 'Hide Investment' : 'Check Investment'}
+          <span className="ml-2">▼</span>
+        </button>
+
+        {showInvestments && investedIdeas.length > 0 && (
+          <div className="bg-[#d3eaf2] rounded-lg shadow-sm p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+            {investedIdeas.map(idea => {
+              // Find the investment for this idea
+              const investment = investments.find(inv => inv.idea_id === idea.id);
+              return (
+                <IdeaCard
+                  key={idea.id}
+                  idea={idea}
+                  additionalInfo={investment ? {
+                    investedAmount: investment.invested_amount ? `$${Number(investment.invested_amount).toLocaleString()}` : undefined,
+                    investedDate: investment.invested_date,
+                    invoiceLink: investment.invoice_link,
+                  } : undefined}
+                />
+              );
+            })}
           </div>
-          
-          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-            <div className="flex items-center space-x-2">
-              <Filter className="h-5 w-5 text-gray-400" />
-              <span className="text-sm text-gray-700">Filters:</span>
-            </div>
-            
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="select"
-            >
-              <option value="all">All Categories</option>
-              {categories.filter(c => c !== 'all').map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-            
-            <select
-              value={stageFilter}
-              onChange={(e) => setStageFilter(e.target.value)}
-              className="select"
-            >
-              <option value="all">All Stages</option>
-              {stages.filter(s => s !== 'all').map(stage => (
-                <option key={stage} value={stage}>
-                  {stage.charAt(0).toUpperCase() + stage.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+        )}
       </div>
       
       {/* Ideas Section */}
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Ideas for You</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-gray-900">Ideas for You</h2>
+          <Link to="/ideas" className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium">
+            Explore All Ideas
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Link>
+        </div>
         {loading ? (
           <div className="text-center py-12 bg-gray-50 rounded-lg">Loading ideas...</div>
         ) : filteredIdeas.length > 0 ? (
@@ -211,34 +256,13 @@ const InvestorDashboard: React.FC = () => {
                 onClick={() => {
                   setCategoryFilter('all');
                   setStageFilter('all');
+                  setSearchText('');
                 }}
                 className="btn btn-primary"
               >
                 Reset filters
               </button>
             </div>
-          </div>
-        )}
-      </div>
-      
-      {/* Saved Ideas Section */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Saved Ideas</h2>
-        {loadingSaved ? (
-          <div className="text-center py-12 bg-gray-50 rounded-lg">Loading saved ideas...</div>
-        ) : savedIdeas.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {savedIdeas.map((idea) => (
-              <IdeaCard key={idea.id} idea={idea} isSaved />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <BookmarkPlus className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-            <h3 className="text-lg font-medium text-gray-900">No saved ideas yet</h3>
-            <p className="mt-2 text-sm text-gray-500 max-w-md mx-auto">
-              Click the bookmark icon on any idea to save it for later.
-            </p>
           </div>
         )}
       </div>

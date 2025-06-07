@@ -14,9 +14,11 @@ import IdeaForm from './pages/IdeaForm';
 import SavedIdeas from './pages/SavedIdeas';
 import Profile from './pages/Profile';
 import EditIdeaPage from './pages/EditIdeaPage';
+import Services from './pages/Services';
 import { useAuthStore, initializeAuthStore } from './store/authStore';
 import { useAutoLogoutOnInactivity } from './hooks/useAutoLogoutOnInactivity';
 import ScrollToTop from './components/layout/ScrollToTop';
+
 
 const App: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
@@ -38,7 +40,12 @@ const App: React.FC = () => {
 
   return (
     <HelmetProvider>
-      <Router>
+      <Router
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true
+        }}
+      >
         <ScrollToTop />
         <div className="flex flex-col min-h-screen">
           <Header />
@@ -77,6 +84,7 @@ const App: React.FC = () => {
                 }
               />
               <Route path="/ideas/edit/:id" element={<EditIdeaPage />} />
+              <Route path="/services" element={<Services />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </main>

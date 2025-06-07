@@ -111,8 +111,8 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ userIdeas, loadingI
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900">Your Ideas</h2>
-          <Link to="/ideas/manage" className="text-sm font-medium text-primary-600 hover:text-primary-700">
-            View all
+          <Link to="/ideas" className="text-sm font-medium text-primary-600 hover:text-primary-700">
+            Explore All Ideas
           </Link>
         </div>
         {loadingIdeas ? (
