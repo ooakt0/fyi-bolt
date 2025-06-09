@@ -1,9 +1,62 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { supabase } from '../store/authStore/supabaseClient';
 import { useAuthStore } from '../store/authStore';
+import { ArrowLeft, ArrowRight, Check, Zap, Lightbulb, Upload, FileText } from 'lucide-react';
 
-// Fix: Add index signature to form type for dynamic key access
+// Animated background component
+const AnimatedBackground: React.FC = () => {
+  return (
+    <div className="fixed inset-0 pointer-events-none z-0">
+      <div 
+        className="absolute inset-0"
+        style={{ 
+          background: 'linear-gradient(135deg, #030303 0%, #0a0a0a 50%, #030303 100%)',
+        }}
+      />
+      <motion.div
+        className="absolute inset-0"
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
+        }}
+        animate={{
+          background: [
+            'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
+            'radial-gradient(ellipse at center, rgba(139, 92, 246, 0.1) 0%, transparent 70%)',
+            'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
+          ]
+        }}
+        transition={{ duration: 8, repeat: Infinity }}
+      />
+    </div>
+  );
+};
+
+// Glassmorphism card component
+const GlassCard: React.FC<{ 
+  children: React.ReactNode; 
+  className?: string;
+  hover?: boolean;
+}> = ({ children, className = '', hover = true }) => {
+  return (
+    <motion.div
+      className={`backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl ${className}`}
+      style={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+      }}
+      whileHover={hover ? { 
+        scale: 1.02,
+        boxShadow: '0 12px 40px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
+      } : undefined}
+      transition={{ duration: 0.3 }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
 const initialForm: Record<string, string> = {
   title: '',
   description: '',
@@ -17,7 +70,6 @@ const initialForm: Record<string, string> = {
   marketOpportunity: '',
 };
 
-// Accept an optional prop for editing an existing idea
 interface IdeaFormProps {
   ideaToEdit?: any;
 }
@@ -102,9 +154,7 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
     },
   ];
 
-
   const [activeStep, setActiveStep] = useState(0);
-
   const currentStep = steps[activeStep];
 
   const handleStepChange = (dir: 1 | -1) => {
@@ -135,7 +185,6 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
     e.preventDefault();
     setForm((f: Record<string, string>) => ({
       ...f,
-      // Combine the 3 description fields for legacy/compatibility
       description: `About This Idea:\n${f.aboutThisIdea || ''}\n\nKey Features:\n${f.keyFeatures || ''}\n\nMarket Opportunity:\n${f.marketOpportunity || ''}`.trim()
     }));
     setStep('verify');
@@ -153,7 +202,6 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
     try {
       let result;
       if (ideaToEdit) {
-        // Update existing idea
         result = await supabase.from('ideas').update({
           title: form.title,
           description: form.description,
@@ -166,14 +214,12 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
           fundingGoal: Number(form.fundingGoal),
           tags: form.tags.split(',').map((t: string) => t.trim()),
           ...(form.supportingDocUrl ? { supporting_doc_url: form.supportingDocUrl, supporting_doc_name: form.supportingDoc } : {}),
-          // Do not update approval status here
         }).eq('id', ideaToEdit.id);
       } else {
-        // Insert new idea
         result = await supabase.from('ideas').insert([
           {
             title: form.title,
-            description: form.description, // legacy/compatibility
+            description: form.description,
             about_this_idea: form.aboutThisIdea,
             key_features: form.keyFeatures.split('\n').map((s: string) => s.trim()).filter(Boolean),
             market_opportunity: form.marketOpportunity,
@@ -185,9 +231,9 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
             tags: form.tags.split(',').map((t: string) => t.trim()),
             creatorId: user.id,
             creatorName: user.name,
-            currentFunding: 0, // deprecated, use funds_collected
+            currentFunding: 0,
             createdAt: new Date().toISOString(),
-            approved: false, // New ideas are unapproved by default
+            approved: false,
             ...(form.supportingDocUrl ? { supporting_doc_url: form.supportingDocUrl, supporting_doc_name: form.supportingDoc } : {}),
           },
         ]);
@@ -205,7 +251,6 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
     navigate('/dashboard');
   };
 
-  // If editing, always start on the verify step
   React.useEffect(() => {
     if (ideaToEdit) {
       setStep('verify');
@@ -219,82 +264,147 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
       upsert: false,
     });
     if (error) throw error;
-    // Get public URL
     const { publicUrl } = supabase.storage.from('idea-docs').getPublicUrl(filePath).data;
     return publicUrl;
   };
 
   if (step === 'verify') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-white to-purple-200">
-        <div className="w-full max-w-2xl bg-gray-50 rounded-2xl shadow-md p-12 relative">
-          <button
-            className="mb-6 px-4 py-2 bg-purple-100 text-purple-700 font-semibold rounded-lg hover:bg-purple-200 transition duration-200"
-            onClick={handleBackToDashboard}
-          >
-            Back to Dashboard
-          </button>
-          <h2 className="text-3xl font-extrabold mb-6 text-center text-purple-800">Verify Your Idea Details</h2>
-          <div className="space-y-6">
-            <div>
-              <div className="text-base font-semibold text-purple-700 mb-1">Title</div>
-              <div className="bg-white rounded-lg border border-purple-100 px-4 py-3 text-gray-800">{form.title}</div>
-            </div>
-            <div>
-              <div className="text-base font-semibold text-purple-700 mb-1">About This Idea</div>
-              <div className="bg-white rounded-lg border border-purple-100 px-4 py-3 text-gray-800 whitespace-pre-line">{form.aboutThisIdea}</div>
-            </div>
-            <div>
-              <div className="text-base font-semibold text-purple-700 mb-1">Key Features</div>
-              <ul className="bg-white rounded-lg border border-purple-100 px-4 py-3 text-gray-800 list-disc list-inside">
-                {form.keyFeatures.split('\n').filter(Boolean).map((feature: string, idx: number) => (
-                  <li key={idx}>{feature}</li>
+      <div className="relative min-h-screen text-white overflow-hidden">
+        <AnimatedBackground />
+        <div className="relative z-10 min-h-screen flex items-center justify-center py-12">
+          <div className="w-full max-w-4xl mx-auto px-4">
+            <GlassCard className="p-12\" hover={false}>
+              <motion.button
+                className="mb-8 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300"
+                onClick={handleBackToDashboard}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4 inline" />
+                Back to Dashboard
+              </motion.button>
+              
+              <motion.h2 
+                className="text-4xl font-bold mb-8 text-center"
+                style={{
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                Verify Your Idea Details
+              </motion.h2>
+              
+              <div className="space-y-8">
+                {[
+                  { label: 'Title', value: form.title },
+                  { label: 'About This Idea', value: form.aboutThisIdea, multiline: true },
+                  { label: 'Key Features', value: form.keyFeatures, list: true },
+                  { label: 'Market Opportunity', value: form.marketOpportunity, multiline: true },
+                  { label: 'Image URL', value: form.imageUrl, url: true },
+                  { label: 'Category', value: form.category },
+                  { label: 'Stage', value: form.stage },
+                  { label: 'Funding Goal (USD)', value: `$${form.fundingGoal}` },
+                  { label: 'Tags', value: form.tags, tags: true }
+                ].map((field, index) => (
+                  <motion.div
+                    key={field.label}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                  >
+                    <div className="text-base font-semibold text-blue-400 mb-2">{field.label}</div>
+                    {field.multiline ? (
+                      <div className="bg-white/5 rounded-xl border border-white/10 px-6 py-4 text-gray-300 whitespace-pre-line">
+                        {field.value}
+                      </div>
+                    ) : field.list ? (
+                      <ul className="bg-white/5 rounded-xl border border-white/10 px-6 py-4 text-gray-300 list-disc list-inside">
+                        {field.value.split('\n').filter(Boolean).map((feature: string, idx: number) => (
+                          <li key={idx}>{feature}</li>
+                        ))}
+                      </ul>
+                    ) : field.url ? (
+                      <div className="bg-white/5 rounded-xl border border-white/10 px-6 py-4 text-gray-300 break-all">
+                        {field.value}
+                      </div>
+                    ) : field.tags ? (
+                      <div className="bg-white/5 rounded-xl border border-white/10 px-6 py-4">
+                        {field.value.split(',').map((tag: string, idx: number) => (
+                          <span key={idx} className="inline-block bg-blue-500/20 text-blue-400 rounded-full px-3 py-1 mr-2 mb-2 text-xs font-medium border border-blue-500/30">
+                            {tag.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="bg-white/5 rounded-xl border border-white/10 px-6 py-4 text-gray-300">
+                        {field.value}
+                      </div>
+                    )}
+                  </motion.div>
                 ))}
-              </ul>
-            </div>
-            <div>
-              <div className="text-base font-semibold text-purple-700 mb-1">Market Opportunity</div>
-              <div className="bg-white rounded-lg border border-purple-100 px-4 py-3 text-gray-800 whitespace-pre-line">{form.marketOpportunity}</div>
-            </div>
-            <div>
-              <div className="text-base font-semibold text-purple-700 mb-1">Image URL</div>
-              <div className="bg-white rounded-lg border border-purple-100 px-4 py-3 text-gray-800 break-all">{form.imageUrl}</div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <div className="text-base font-semibold text-purple-700 mb-1">Category</div>
-                <div className="bg-white rounded-lg border border-purple-100 px-4 py-3 text-gray-800">{form.category}</div>
+                
+                {form.supportingDoc && form.supportingDocUrl && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.9 }}
+                  >
+                    <div className="text-base font-semibold text-blue-400 mb-2">Supporting Document</div>
+                    <a 
+                      href={form.supportingDocUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-blue-400 hover:text-blue-300 underline flex items-center"
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      {form.supportingDoc}
+                    </a>
+                  </motion.div>
+                )}
               </div>
-              <div>
-                <div className="text-base font-semibold text-purple-700 mb-1">Stage</div>
-                <div className="bg-white rounded-lg border border-purple-100 px-4 py-3 text-gray-800">{form.stage}</div>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <div className="text-base font-semibold text-purple-700 mb-1">Funding Goal (USD)</div>
-                <div className="bg-white rounded-lg border border-purple-100 px-4 py-3 text-gray-800">${form.fundingGoal}</div>
-              </div>
-              <div>
-                <div className="text-base font-semibold text-purple-700 mb-1">Tags</div>
-                <div className="bg-white rounded-lg border border-purple-100 px-4 py-3 text-gray-800">
-                  {form.tags.split(',').map((tag: string, idx: number) => (
-                    <span key={idx} className="inline-block bg-purple-100 text-purple-700 rounded px-2 py-1 mr-2 mb-1 text-xs font-medium">{tag.trim()}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-            {form.supportingDoc && form.supportingDocUrl && (
-              <div>
-                <div className="text-base font-semibold text-purple-700 mb-1">Supporting Document</div>
-                <a href={form.supportingDocUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 underline">{form.supportingDoc}</a>
-              </div>
-            )}
-          </div>
-          {submitError && <div className="text-red-600 mt-4 text-center">{submitError}</div>}
-          <div className="flex gap-4 mt-10">
-            <button className="flex-1 py-3 rounded-lg font-bold text-white bg-purple-600 hover:bg-purple-700 transition duration-200 disabled:opacity-60" onClick={handleConfirm}>Confirm & Create</button>
-            <button className="flex-1 py-3 rounded-lg font-bold text-purple-700 bg-purple-100 hover:bg-purple-200 transition duration-200" onClick={() => setStep('form')}>Edit</button>
+              
+              {submitError && (
+                <motion.div 
+                  className="text-red-400 mt-6 text-center p-4 bg-red-500/10 border border-red-500/20 rounded-xl"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  {submitError}
+                </motion.div>
+              )}
+              
+              <motion.div 
+                className="flex gap-6 mt-12"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1 }}
+              >
+                <motion.button 
+                  className="flex-1 py-4 rounded-xl font-bold text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 disabled:opacity-60" 
+                  onClick={handleConfirm}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Check className="mr-2 h-5 w-5 inline" />
+                  Confirm & Create
+                </motion.button>
+                <motion.button 
+                  className="flex-1 py-4 rounded-xl font-bold text-white bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-300" 
+                  onClick={() => setStep('form')}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Edit
+                </motion.button>
+              </motion.div>
+            </GlassCard>
           </div>
         </div>
       </div>
@@ -303,212 +413,292 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
 
   if (step === 'done') {
     return (
-      <div className="max-w-lg mx-auto bg-white p-8 rounded shadow text-center relative">
-        <button
-          className="btn btn-secondary absolute top-4 left-4"
-          onClick={handleBackToDashboard}
-        >
-          Back to Dashboard
-        </button>
-        <h2 className="text-2xl font-bold mb-4">Idea Created!</h2>
-        <p>Your idea has been successfully created.</p>
+      <div className="relative min-h-screen text-white overflow-hidden">
+        <AnimatedBackground />
+        <div className="relative z-10 min-h-screen flex items-center justify-center">
+          <GlassCard className="p-12 text-center max-w-lg">
+            <motion.div
+              className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 mb-8"
+              whileHover={{ rotate: 360 }}
+              transition={{ duration: 0.6 }}
+            >
+              <Check className="h-10 w-10 text-white" />
+            </motion.div>
+            <h2 className="text-3xl font-bold text-white mb-4">Idea Created!</h2>
+            <p className="text-gray-300 mb-8">Your idea has been successfully created and is pending approval.</p>
+            <motion.button
+              className="btn btn-primary"
+              onClick={handleBackToDashboard}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Back to Dashboard
+            </motion.button>
+          </GlassCard>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-white to-purple-200">
-      <div className="w-full max-w-2xl bg-gray-50 rounded-2xl shadow-md p-12 relative">
-        {/* Back to Dashboard button */}
-        <button
-          className="mb-6 px-4 py-2 bg-purple-100 text-purple-700 font-semibold rounded-lg hover:bg-purple-200 transition duration-200"
-          onClick={handleBackToDashboard}
-        >
-          Back to Dashboard
-        </button>
-        {/* Progress Indicator */}
-        <div className="flex items-center justify-between mb-10 px-2">
-          {steps.map((step, idx) => (
-            <React.Fragment key={step.label}>
-              <div className={`flex flex-col items-center z-10`}>
-                <div
-                  className={`w-8 h-8 flex items-center justify-center rounded-full border-2 transition duration-200
-                    ${idx < activeStep ? 'bg-purple-600 border-purple-600 text-white' :
-                      idx === activeStep ? 'bg-purple-100 border-purple-400 text-purple-700' :
-                      'bg-white border-purple-200 text-purple-300'}
-                  `}
-                >
-                  {idx < activeStep ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                  ) : (
-                    <span className="font-bold">{idx + 1}</span>
+    <div className="relative min-h-screen text-white overflow-hidden">
+      <AnimatedBackground />
+      <div className="relative z-10 min-h-screen flex items-center justify-center py-12">
+        <div className="w-full max-w-4xl mx-auto px-4">
+          <GlassCard className="p-12" hover={false}>
+            {/* Back to Dashboard button */}
+            <motion.button
+              className="mb-8 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300"
+              onClick={handleBackToDashboard}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4 inline" />
+              Back to Dashboard
+            </motion.button>
+            
+            {/* Progress Indicator */}
+            <div className="flex items-center justify-between mb-12 px-4">
+              {steps.map((step, idx) => (
+                <React.Fragment key={step.label}>
+                  <motion.div 
+                    className="flex flex-col items-center z-10"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: idx * 0.1 }}
+                  >
+                    <motion.div
+                      className={`w-12 h-12 flex items-center justify-center rounded-xl border-2 transition-all duration-300 ${
+                        idx < activeStep ? 'bg-gradient-to-r from-blue-500 to-purple-600 border-blue-500 text-white' :
+                        idx === activeStep ? 'bg-blue-500/20 border-blue-400 text-blue-400' :
+                        'bg-white/5 border-white/20 text-gray-400'
+                      }`}
+                      whileHover={{ scale:  1.1 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {idx < activeStep ? (
+                        <Check className="w-6 h-6" />
+                      ) : (
+                        <span className="font-bold">{idx + 1}</span>
+                      )}
+                    </motion.div>
+                    <span className={`mt-3 text-xs font-medium ${idx === activeStep ? 'text-blue-400' : 'text-gray-400'}`}>
+                      {step.label}
+                    </span>
+                  </motion.div>
+                  {idx < steps.length - 1 && (
+                    <motion.div 
+                      className={`flex-1 h-1 mx-2 md:mx-4 rounded-full transition-all duration-300 ${
+                        idx < activeStep ? 'bg-gradient-to-r from-blue-500 to-purple-600' : 'bg-white/10'
+                      }`}
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ duration: 0.6, delay: idx * 0.1 + 0.3 }}
+                    />
                   )}
+                </React.Fragment>
+              ))}
+            </div>
+            
+            {/* Step Content */}
+            <motion.div 
+              className="transition-all duration-300"
+              key={activeStep}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="flex items-center mb-6">
+                <motion.div
+                  className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 mr-4"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <Lightbulb className="h-6 w-6 text-white" />
+                </motion.div>
+                <div>
+                  <label className="block text-2xl font-bold text-white mb-1">{currentStep.label}</label>
+                  <p className="text-sm text-gray-400">{currentStep.description}</p>
                 </div>
-                <span className={`mt-2 text-xs font-medium ${idx === activeStep ? 'text-purple-700' : 'text-gray-400'}`}>{step.label}</span>
               </div>
-              {idx < steps.length - 1 && (
-                <div className={`flex-1 h-1 mx-1 md:mx-2 rounded-full transition duration-200
-                  ${idx < activeStep ? 'bg-purple-600' : 'bg-purple-200'}`}
+              
+              {currentStep.type === 'custom-description' ? (
+                <div className="space-y-8">
+                  <div>
+                    <label className="block text-lg font-semibold text-white mb-2">About This Idea</label>
+                    <p className="text-xs text-gray-400 mb-3">Describe the core concept, vision, and what problem your idea solves.</p>
+                    <textarea
+                      name="aboutThisIdea"
+                      className="input"
+                      placeholder="Describe the core concept and vision..."
+                      value={form.aboutThisIdea || ''}
+                      onChange={e => setForm({ ...form, aboutThisIdea: e.target.value })}
+                      required
+                      rows={4}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-lg font-semibold text-white mb-2">Key Features</label>
+                    <p className="text-xs text-gray-400 mb-3">List the main features and differentiators that make your idea unique.</p>
+                    <textarea
+                      name="keyFeatures"
+                      className="input"
+                      placeholder="List the main features..."
+                      value={form.keyFeatures || ''}
+                      onChange={e => setForm({ ...form, keyFeatures: e.target.value })}
+                      required
+                      rows={4}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-lg font-semibold text-white mb-2">Market Opportunity</label>
+                    <p className="text-xs text-gray-400 mb-3">Explain the market need, target audience, and potential for growth.</p>
+                    <textarea
+                      name="marketOpportunity"
+                      className="input"
+                      placeholder="Explain the market opportunity..."
+                      value={form.marketOpportunity || ''}
+                      onChange={e => setForm({ ...form, marketOpportunity: e.target.value })}
+                      required
+                      rows={4}
+                    />
+                  </div>
+                  <div className="p-6 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                    <label className="block text-sm font-medium text-blue-400 mb-2">Upload Supporting Document (PDF or DOCX)</label>
+                    <p className="text-xs text-gray-400 mb-4">If you have a document explaining your idea in detail, you can upload it here. (Optional)</p>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
+                      className="block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-500/20 file:text-blue-400 hover:file:bg-blue-500/30 transition-colors"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file || !user) return;
+                        try {
+                          console.log('Uploading file:', file);
+                          const url = await uploadIdeaDocument(file, user.id);
+                          console.log('Upload successful, url:', url);
+                          setForm((f: Record<string, string>) => ({ ...f, supportingDoc: file.name, supportingDocUrl: url }));
+                        } catch (err: any) {
+                          console.error('Failed to upload document:', err?.message || err);
+                          alert('Failed to upload document: ' + (err?.message || err));
+                        }
+                      }}
+                    />
+                    {form.supportingDoc && (
+                      <div className="mt-3 text-xs text-green-400 flex items-center">
+                        <Upload className="mr-2 h-4 w-4" />
+                        Uploaded: {form.supportingDoc}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : currentStep.type === 'textarea' ? (
+                <textarea
+                  name={currentStep.name}
+                  className="input"
+                  placeholder={currentStep.placeholder}
+                  value={form[currentStep.name]}
+                  onChange={handleFieldChange}
+                  required
+                  rows={6}
+                />
+              ) : currentStep.type === 'select' ? (
+                <select
+                  name={currentStep.name}
+                  className="input"
+                  value={form[currentStep.name]}
+                  onChange={handleFieldChange}
+                  required
+                >
+                  <option value="" disabled>{currentStep.placeholder}</option>
+                  {currentStep.options && currentStep.options.map((opt: string) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              ) : currentStep.type === 'select-or-custom' ? (
+                <div className="space-y-4">
+                  <select
+                    name={currentStep.name}
+                    className="input"
+                    value={form[currentStep.name] && Array.isArray(currentStep.options) && currentStep.options.includes(form[currentStep.name]) ? form[currentStep.name] : ''}
+                    onChange={e => {
+                      setForm({ ...form, [currentStep.name]: e.target.value });
+                    }}
+                  >
+                    <option value="" disabled>{currentStep.placeholder}</option>
+                    {Array.isArray(currentStep.options) && currentStep.options.map((opt: string) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Or enter a new category"
+                    value={form[currentStep.name] && (!Array.isArray(currentStep.options) || !currentStep.options.includes(form[currentStep.name])) ? form[currentStep.name] : ''}
+                    onChange={e => setForm({ ...form, [currentStep.name]: e.target.value })}
+                  />
+                </div>
+              ) : (
+                <input
+                  name={currentStep.name}
+                  type={currentStep.type}
+                  className="input"
+                  placeholder={currentStep.placeholder}
+                  value={form[currentStep.name]}
+                  onChange={handleFieldChange}
+                  required
+                  min={currentStep.type === 'number' ? 1 : undefined}
                 />
               )}
-            </React.Fragment>
-          ))}
-        </div>
-        {/* Step Content */}
-        <div className="transition duration-200 ease-in-out">
-          <label className="block text-lg font-semibold text-purple-800 mb-1">{currentStep.label}</label>
-          <p className="text-sm text-gray-500 mb-4">{currentStep.description}</p>
-          {currentStep.type === 'custom-description' ? (
-            <div className="space-y-6">
-              <div>
-                <label className="block text-base font-semibold text-purple-800 mb-1">About This Idea</label>
-                <p className="text-xs text-gray-500 mb-2">Describe the core concept, vision, and what problem your idea solves.</p>
-                <textarea
-                  name="aboutThisIdea"
-                  className="w-full px-4 py-3 rounded-lg border border-purple-200 focus:border-purple-500 bg-purple-50 focus:bg-white transition duration-200 mb-2"
-                  placeholder="Describe the core concept and vision..."
-                  value={form.aboutThisIdea || ''}
-                  onChange={e => setForm({ ...form, aboutThisIdea: e.target.value })}
-                  required
-                  rows={3}
-                />
-                
-              </div>
-              <div>
-                <label className="block text-base font-semibold text-purple-800 mb-1">Key Features</label>
-                <p className="text-xs text-gray-500 mb-2">List the main features and differentiators that make your idea unique.</p>
-                <textarea
-                  name="keyFeatures"
-                  className="w-full px-4 py-3 rounded-lg border border-purple-200 focus:border-purple-500 bg-purple-50 focus:bg-white transition duration-200 mb-2"
-                  placeholder="List the main features..."
-                  value={form.keyFeatures || ''}
-                  onChange={e => setForm({ ...form, keyFeatures: e.target.value })}
-                  required
-                  rows={3}
-                />
-              </div>
-              <div>
-                <label className="block text-base font-semibold text-purple-800 mb-1">Market Opportunity</label>
-                <p className="text-xs text-gray-500 mb-2">Explain the market need, target audience, and potential for growth.</p>
-                <textarea
-                  name="marketOpportunity"
-                  className="w-full px-4 py-3 rounded-lg border border-purple-200 focus:border-purple-500 bg-purple-50 focus:bg-white transition duration-200 mb-2"
-                  placeholder="Explain the market opportunity..."
-                  value={form.marketOpportunity || ''}
-                  onChange={e => setForm({ ...form, marketOpportunity: e.target.value })}
-                  required
-                  rows={3}
-                />
-              </div>
-              <div className="mt-2 bg-secondary-100 rounded p-4">
-                <label className="block text-sm font-medium text-secondary-700 mb-1">Upload Supporting Document (PDF or DOCX)</label>
-                <p className="text-xs text-secondary-700 mb-2">If you have a document explaining your idea in detail, you can upload it here. (Optional)</p>
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
-                  className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-secondary-50 file:text-secondary-700 hover:file:bg-secondary-200"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file || !user) return;
-                    try {
-                      console.log('Uploading file:', file);
-                      // Upload to Supabase Storage
-                      const url = await uploadIdeaDocument(file, user.id);
-                      console.log('Upload successful, url:', url);
-                      setForm((f: Record<string, string>) => ({ ...f, supportingDoc: file.name, supportingDocUrl: url }));
-                    } catch (err: any) {
-                      console.error('Failed to upload document:', err?.message || err);
-                      alert('Failed to upload document: ' + (err?.message || err));
-                    }
-                  }}
-                />
-                {form.supportingDoc && (
-                  <div className="mt-1 text-xs text-green-700">Uploaded: {form.supportingDoc}</div>
-                )}
-              </div>
-            </div>
-          ) : currentStep.type === 'textarea' ? (
-            <textarea
-              name={currentStep.name}
-              className="w-full px-4 py-3 rounded-lg border border-purple-200 focus:border-purple-500 bg-purple-50 focus:bg-white transition duration-200 mb-2"
-              placeholder={currentStep.placeholder}
-              value={form[currentStep.name]}
-              onChange={handleFieldChange}
-              required
-              rows={4}
-            />
-          ) : currentStep.type === 'select' ? (
-            <select
-              name={currentStep.name}
-              className="w-full px-4 py-3 rounded-lg border border-purple-200 focus:border-purple-500 bg-purple-50 focus:bg-white transition duration-200 mb-2"
-              value={form[currentStep.name]}
-              onChange={handleFieldChange}
-              required
+            </motion.div>
+            
+            {/* Navigation Buttons */}
+            <motion.div 
+              className="flex items-center mt-12 gap-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <option value="" disabled>{currentStep.placeholder}</option>
-              {currentStep.options && currentStep.options.map((opt: string) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-          ) : currentStep.type === 'select-or-custom' ? (
-            <div>
-              <select
-                name={currentStep.name}
-                className="w-full px-4 py-3 rounded-lg border border-purple-200 focus:border-purple-500 bg-purple-50 focus:bg-white transition duration-200 mb-2"
-                value={form[currentStep.name] && Array.isArray(currentStep.options) && currentStep.options.includes(form[currentStep.name]) ? form[currentStep.name] : ''}
-                onChange={e => {
-                  setForm({ ...form, [currentStep.name]: e.target.value });
+              {activeStep > 0 && (
+                <motion.button
+                  type="button"
+                  className="text-blue-400 font-medium hover:text-blue-300 transition-colors flex items-center"
+                  onClick={() => handleStepChange(-1)}
+                  whileHover={{ x: -5 }}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </motion.button>
+              )}
+              <motion.button
+                type="button"
+                className={`flex-1 py-4 rounded-xl font-bold text-white transition-all duration-300 ${
+                  isFieldValid() 
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700' 
+                    : 'bg-gray-600 cursor-not-allowed'
+                }`}
+                onClick={() => {
+                  if (activeStep < steps.length - 1) handleStepChange(1);
+                  else setStep('verify');
                 }}
+                disabled={!isFieldValid()}
+                whileHover={{ scale: isFieldValid() ? 1.02 : 1 }}
+                whileTap={{ scale: isFieldValid() ? 0.98 : 1 }}
               >
-                <option value="" disabled>{currentStep.placeholder}</option>
-                {Array.isArray(currentStep.options) && currentStep.options.map((opt: string) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-              <input
-                type="text"
-                className="w-full px-4 py-3 rounded-lg border border-purple-200 focus:border-purple-500 bg-purple-50 focus:bg-white transition duration-200 mb-2 mt-2"
-                placeholder="Or enter a new category"
-                value={form[currentStep.name] && (!Array.isArray(currentStep.options) || !currentStep.options.includes(form[currentStep.name])) ? form[currentStep.name] : ''}
-                onChange={e => setForm({ ...form, [currentStep.name]: e.target.value })}
-              />
-            </div>
-          ) : (
-            <input
-              name={currentStep.name}
-              type={currentStep.type}
-              className="w-full px-4 py-3 rounded-lg border border-purple-200 focus:border-purple-500 bg-purple-50 focus:bg-white transition duration-200 mb-2"
-              placeholder={currentStep.placeholder}
-              value={form[currentStep.name]}
-              onChange={handleFieldChange}
-              required
-              min={currentStep.type === 'number' ? 1 : undefined}
-            />
-          )}
-        </div>
-        {/* Navigation Buttons */}
-        <div className="flex items-center mt-8 gap-4">
-          {activeStep > 0 && (
-            <button
-              type="button"
-              className="text-purple-600 font-medium underline hover:text-purple-800 transition duration-200"
-              onClick={() => handleStepChange(-1)}
-            >
-              Back
-            </button>
-          )}
-          <button
-            type="button"
-            className={`flex-1 py-3 rounded-lg font-bold text-white transition duration-200
-              ${isFieldValid() ? 'bg-purple-600 hover:bg-purple-700' : 'bg-purple-300 cursor-not-allowed'}`}
-            onClick={() => {
-              if (activeStep < steps.length - 1) handleStepChange(1);
-              else setStep('verify');
-            }}
-            disabled={!isFieldValid()}
-          >
-            {activeStep === steps.length - 1 ? 'Verify' : 'Next'}
-          </button>
+                {activeStep === steps.length - 1 ? (
+                  <>
+                    <Check className="mr-2 h-5 w-5 inline" />
+                    Verify
+                  </>
+                ) : (
+                  <>
+                    Next
+                    <ArrowRight className="ml-2 h-5 w-5 inline" />
+                  </>
+                )}
+              </motion.button>
+            </motion.div>
+          </GlassCard>
         </div>
       </div>
     </div>
