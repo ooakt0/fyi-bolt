@@ -274,7 +274,7 @@ const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
         <AnimatedBackground />
         <div className="relative z-10 min-h-screen flex items-center justify-center py-12">
           <div className="w-full max-w-4xl mx-auto px-4">
-            <GlassCard className="p-12" hover={false}>
+            <GlassCard className="p-12\" hover={false}>
               <motion.button
                 className="mb-8 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300"
                 onClick={handleBackToDashboard}
