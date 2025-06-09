@@ -8,9 +8,11 @@ import { getMessagesForUser } from '../../data/mockData';
 import IdeaCard from '../ideas/IdeaCard';
 import { useIdeasStore } from '../../store/authStore/ideasStore';
 
+const MotionLink = motion(Link);
+
 // Glassmorphism card component
-const GlassCard: React.FC<{ 
-  children: React.ReactNode; 
+const GlassCard: React.FC<{
+  children: React.ReactNode;
   className?: string;
   hover?: boolean;
 }> = ({ children, className = '', hover = true }) => {
@@ -21,7 +23,7 @@ const GlassCard: React.FC<{
         background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
         boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
       }}
-      whileHover={hover ? { 
+      whileHover={hover ? {
         scale: 1.02,
         boxShadow: '0 12px 40px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
       } : undefined}
@@ -145,64 +147,85 @@ const InvestorDashboard: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* Welcome Section */}
+      {/* ───────── Search Section ───────── */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <GlassCard className="p-8" hover={false}>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-2">Welcome {user?.role.toUpperCase()}, {user?.name}!</h2>
-              <p className="text-gray-300 text-lg">Discover promising ideas and find your next investment opportunity</p>
-            </div>
-            <div className="mt-6 md:mt-0 flex items-center space-x-4">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Link 
-                  to="/ideas/saved" 
-                  className="btn btn-outline inline-flex items-center px-6 py-3"
+        <GlassCard className="p-8 w-full" hover={false}>
+          <div className="flex flex-col md:flex-row md:items-center">
+            {/* ─── Search input (takes all free space) ─── */}
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={searchText}
+                onChange={handleSearchChange}
+                placeholder="Search ideas by name..."
+                className="
+            block w-full pl-12 pr-12 py-3
+            bg-white/5 backdrop-blur-xl
+            border border-white/20 rounded-xl
+            text-white placeholder-gray-400
+            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+            sm:text-sm transition-all duration-300
+          "
+              />
+              {/* search icon – centred */}
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+
+              {searchText ? (
+                <motion.button
+                  onClick={clearSearch}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
                 >
-                  <BookmarkPlus className="mr-2 h-5 w-5" />
-                  Saved Ideas
-                </Link>
-              </motion.div>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchText}
-                  onChange={handleSearchChange}
-                  placeholder="Search ideas by name..."
-                  className="block w-full pl-12 pr-12 py-3 bg-white/5 backdrop-blur-xl border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all duration-300"
-                />
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                {searchText ? (
-                  <motion.button
-                    onClick={clearSearch}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    ✕
-                  </motion.button>
-                ) : (
-                  <motion.div
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                  >
-                    <Zap className="h-5 w-5 text-blue-400" />
-                  </motion.div>
-                )}
-              </div>
+                  ✕
+                </motion.button>
+              ) : (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                  className="absolute right-4 inset-y-0 my-auto flex items-center justify-center"
+                >
+                  <Zap className="h-5 w-5 text-blue-400" />
+                </motion.div>
+              )}
             </div>
+
+            {/* ─── Saved Ideas button (now RIGHT) ─── */}
+            <MotionLink
+              to="/ideas/saved"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="
+          group inline-flex items-center
+          px-6 py-3 mt-6 md:mt-0 md:ml-6
+          rounded-xl border border-white/20
+          bg-white/5 backdrop-blur-xl
+          text-white transition-all duration-300
+          hover:bg-white/10
+          hover:shadow-[0_0_12px_rgba(0,255,255,0.8)]
+        "
+            >
+              <motion.span
+                animate={{ rotate: [0, -20, 20, 0] }}
+                transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+                className="mr-2 flex"
+              >
+                <BookmarkPlus className="h-5 w-5 text-blue-400" />
+              </motion.span>
+              Saved&nbsp;Ideas
+            </MotionLink>
           </div>
         </GlassCard>
       </motion.div>
-      
+
+
+
+
+
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {metrics.map((metric, index) => (
@@ -231,7 +254,7 @@ const InvestorDashboard: React.FC = () => {
           </motion.div>
         ))}
       </div>
-      
+
       {/* Investment Section */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -245,7 +268,7 @@ const InvestorDashboard: React.FC = () => {
             whileHover={{ x: 5 }}
           >
             {showInvestments ? 'Hide Investment' : 'Check Investment'}
-            <motion.span 
+            <motion.span
               className="ml-3"
               animate={{ rotate: showInvestments ? 180 : 0 }}
               transition={{ duration: 0.3 }}
@@ -255,7 +278,7 @@ const InvestorDashboard: React.FC = () => {
           </motion.button>
 
           {showInvestments && investedIdeas.length > 0 && (
-            <motion.div 
+            <motion.div
               className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -285,7 +308,7 @@ const InvestorDashboard: React.FC = () => {
           )}
         </GlassCard>
       </motion.div>
-      
+
       {/* Ideas Section */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -295,15 +318,15 @@ const InvestorDashboard: React.FC = () => {
         <GlassCard className="p-8" hover={false}>
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold text-white">Ideas for You</h2>
-            <Link 
-              to="/ideas" 
+            <Link
+              to="/ideas"
               className="inline-flex items-center text-blue-400 hover:text-blue-300 font-medium group"
             >
               Explore All Ideas
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
-          
+
           {loading ? (
             <div className="text-center py-16">
               <motion.div
@@ -349,7 +372,7 @@ const InvestorDashboard: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <button 
+                <button
                   onClick={() => {
                     setSearchText('');
                   }}
@@ -362,7 +385,7 @@ const InvestorDashboard: React.FC = () => {
           )}
         </GlassCard>
       </motion.div>
-      
+
       {/* Hot Ideas Section */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -371,7 +394,7 @@ const InvestorDashboard: React.FC = () => {
       >
         <GlassCard className="p-8" hover={false}>
           <h2 className="text-2xl font-bold text-white mb-8">Trending Ideas</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {ideas
               .sort((a, b) => (b.currentFunding / b.fundingGoal) - (a.currentFunding / a.fundingGoal))

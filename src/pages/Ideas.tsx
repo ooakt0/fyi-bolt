@@ -133,7 +133,7 @@ const Ideas: React.FC = () => {
                       </motion.button>
                     ) : (
                       <motion.div
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2"
+                        className="absolute right-4 inset-y-0 my-auto flex items-center justify-center"
                         animate={{ rotate: 360 }}
                         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                       >

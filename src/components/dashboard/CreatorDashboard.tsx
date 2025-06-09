@@ -95,38 +95,8 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ userIdeas, loadingI
 
   return (
     <div className="space-y-8">
-      {/* Welcome Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <GlassCard className="p-8" hover={false}>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-3xl font-bold text-white mb-2">Welcome back, {user?.name}!</h2>
-              <p className="text-gray-300 text-lg">Manage your ideas and check your funding status</p>
-            </div>
-            <div className="mt-6 md:mt-0">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Link 
-                  to="/ideas/new" 
-                  className="btn btn-primary inline-flex items-center px-6 py-3"
-                >
-                  <PlusCircle className="mr-2 h-5 w-5" />
-                  Create New Idea
-                </Link>
-              </motion.div>
-            </div>
-          </div>
-        </GlassCard>
-      </motion.div>
-      
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
         {metrics.map((metric, index) => (
           <motion.div
             key={metric.label}
@@ -152,8 +122,28 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ userIdeas, loadingI
             </GlassCard>
           </motion.div>
         ))}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="mt-6 md:mt-0 flex justify-center">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link 
+                to="/ideas/new" 
+                className="btn btn-primary inline-flex items-center px-6 py-3"
+              >
+                <PlusCircle className="mr-2 h-5 w-5" />
+                Create New Idea
+              </Link>
+            </motion.div>
+          </div>
+        </motion.div>
       </div>
-      
+
       {/* Ideas Section */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}

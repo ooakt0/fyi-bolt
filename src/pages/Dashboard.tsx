@@ -85,10 +85,10 @@ const Dashboard: React.FC = () => {
                       backgroundClip: 'text',
                     }}
                   >
-                    Dashboard
+                    {user?.name}'s Dashboard
                   </motion.h1>
                   <p className="text-xl text-gray-300">
-                    Welcome to your {user?.role} dashboard, {user?.name}
+                    Welcome to your <span className={user?.role === 'creator' ? 'text-blue-400' : 'text-purple-400'}>{user?.role}</span> Dashboard
                   </p>
                 </div>
                 <motion.div
