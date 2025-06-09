@@ -39,10 +39,13 @@ const Header: React.FC = () => {
     { path: '/services', label: 'Services' },
   ];
 
+  // Check if we're on login or signup pages
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+
   return (
     <motion.header 
       className={`fixed w-full z-50 transition-all duration-500 ${
-        scrolled ? 'top-4' : 'top-6'
+        isAuthPage ? 'top-6' : (scrolled ? 'top-4' : 'top-6')
       }`}
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}

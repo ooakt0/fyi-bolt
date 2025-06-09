@@ -1,8 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Camera, Loader } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { User, Camera, Loader, Save, ArrowLeft, Zap, Star } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../store/authStore/supabaseClient';
+
+// Animated background component
+const AnimatedBackground: React.FC = () => {
+  return (
+    <div className="fixed inset-0 pointer-events-none z-0">
+      <div 
+        className="absolute inset-0"
+        style={{ 
+          background: 'linear-gradient(135deg, #030303 0%, #0a0a0a 50%, #030303 100%)',
+        }}
+      />
+      <motion.div
+        className="absolute inset-0"
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
+        }}
+        animate={{
+          background: [
+            'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
+            'radial-gradient(ellipse at center, rgba(139, 92, 246, 0.1) 0%, transparent 70%)',
+            'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
+          ]
+        }}
+        transition={{ duration: 8, repeat: Infinity }}
+      />
+    </div>
+  );
+};
+
+// Glassmorphism card component
+const GlassCard: React.FC<{ 
+  children: React.ReactNode; 
+  className?: string;
+  hover?: boolean;
+}> = ({ children, className = '', hover = true }) => {
+  return (
+    <motion.div
+      className={`backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl ${className}`}
+      style={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+      }}
+      whileHover={hover ? { 
+        scale: 1.02,
+        boxShadow: '0 12px 40px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
+      } : undefined}
+      transition={{ duration: 0.3 }}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 const Profile: React.FC = () => {
   const { user, isAuthenticated } = useAuthStore();
@@ -93,115 +146,281 @@ const Profile: React.FC = () => {
   };
 
   return (
-    <div className="pt-24 pb-12 bg-gray-50 min-h-screen">
-      <div className="container-custom max-w-3xl">
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-primary-600 to-primary-800 px-6 py-8">
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                {formData.avatar_url ? (
-                  <img
-                    src={formData.avatar_url}
-                    alt={formData.name}
-                    className="w-20 h-20 rounded-full object-cover border-4 border-white"
+    <div className="relative min-h-screen text-white overflow-hidden">
+      {/* Animated Background */}
+      <AnimatedBackground />
+      
+      <div className="relative z-10 pt-32 pb-16">
+        <div className="container-custom max-w-4xl">
+          {/* Back Button */}
+          <motion.div 
+            className="mb-8"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <motion.button
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center text-blue-400 hover:text-blue-300 font-medium group"
+              whileHover={{ x: -5 }}
+            >
+              <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+              Back
+            </motion.button>
+          </motion.div>
+
+          <GlassCard className="overflow-hidden" hover={false}>
+            {/* Header */}
+            <motion.div 
+              className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 px-8 py-12 relative overflow-hidden"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20"
+                animate={{
+                  background: [
+                    'linear-gradient(45deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%)',
+                    'linear-gradient(45deg, rgba(139, 92, 246, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%)',
+                    'linear-gradient(45deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%)',
+                  ]
+                }}
+                transition={{ duration: 6, repeat: Infinity }}
+              />
+              
+              <div className="relative flex items-center space-x-6">
+                <div className="relative">
+                  {formData.avatar_url ? (
+                    <motion.img
+                      src={formData.avatar_url}
+                      alt={formData.name}
+                      className="w-24 h-24 rounded-full object-cover border-4 border-white/20 shadow-2xl"
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  ) : (
+                    <motion.div 
+                      className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center border-4 border-white/20 shadow-2xl"
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <User className="w-12 h-12 text-white" />
+                    </motion.div>
+                  )}
+                  <motion.button 
+                    className="absolute bottom-0 right-0 bg-white/20 backdrop-blur-xl rounded-full p-2 shadow-lg hover:bg-white/30 transition-colors"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Camera className="w-4 h-4 text-white" />
+                  </motion.button>
+                </div>
+                <div>
+                  <motion.h1 
+                    className="text-3xl font-bold text-white mb-2"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8, delay: 0.2 }}
+                  >
+                    {formData.name || 'Your Name'}
+                  </motion.h1>
+                  <motion.p 
+                    className="text-white/80 text-lg"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8, delay: 0.3 }}
+                  >
+                    {formData.role ? formData.role.charAt(0).toUpperCase() + formData.role.slice(1) : ''}
+                  </motion.p>
+                </div>
+                <motion.div
+                  className="ml-auto"
+                  animate={{ rotate: [0, 360] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                >
+                  {formData.role === 'creator' ? (
+                    <Zap className="h-8 w-8 text-white/60" />
+                  ) : (
+                    <Star className="h-8 w-8 text-white/60" />
+                  )}
+                </motion.div>
+              </div>
+            </motion.div>
+
+            {/* Form */}
+            <motion.form 
+              onSubmit={handleSubmit} 
+              className="p-8 space-y-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              <div className="grid grid-cols-1 gap-8">
+                <div>
+                  <label className="form-label">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="input"
+                    required
                   />
-                ) : (
-                  <div className="w-20 h-20 rounded-full bg-primary-700 flex items-center justify-center border-4 border-white">
-                    <User className="w-10 h-10 text-white" />
-                  </div>
-                )}
-                <button className="absolute bottom-0 right-0 bg-white rounded-full p-1.5 shadow-sm hover:bg-gray-50">
-                  <Camera className="w-4 h-4 text-gray-600" />
-                </button>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white">{formData.name || 'Your Name'}</h1>
-                <p className="text-primary-100">
-                  {formData.role ? formData.role.charAt(0).toUpperCase() + formData.role.slice(1) : ''}
-                </p>
-              </div>
-            </div>
-          </div>
+                </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            <div className="grid grid-cols-1 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="input"
-                  required
-                />
-              </div>
+                <div>
+                  <label className="form-label">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    className="input bg-white/5 cursor-not-allowed"
+                    disabled
+                  />
+                  <p className="mt-2 text-xs text-gray-400">
+                    Email cannot be changed. Contact support if you need to update it.
+                  </p>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  className="input bg-gray-50"
-                  disabled
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Email cannot be changed. Contact support if you need to update it.
-                </p>
-              </div>
+                <div>
+                  <label className="form-label">
+                    Bio
+                  </label>
+                  <textarea
+                    name="bio"
+                    value={formData.bio}
+                    onChange={handleChange}
+                    className="input"
+                    rows={4}
+                    placeholder="Tell us about yourself..."
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Bio
-                </label>
-                <textarea
-                  name="bio"
-                  value={formData.bio}
-                  onChange={handleChange}
-                  className="input"
-                  rows={4}
-                  placeholder="Tell us about yourself..."
-                />
-              </div>
-
-              {formData.role === 'creator' ? (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Areas of Expertise
-                    </label>
-                    <input
-                      type="text"
-                      name="expertise"
-                      value={formData.expertise}
-                      onChange={handleChange}
-                      className="input"
-                      placeholder="e.g., Mobile Development, AI, Blockchain"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Portfolio URL
-                    </label>
-                    <input
-                      type="url"
-                      name="portfolio_url"
-                      value={formData.portfolio_url}
-                      onChange={handleChange}
-                      className="input"
-                      placeholder="https://your-portfolio.com"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {formData.role === 'creator' ? (
+                  <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="form-label">
+                        Areas of Expertise
+                      </label>
+                      <input
+                        type="text"
+                        name="expertise"
+                        value={formData.expertise}
+                        onChange={handleChange}
+                        className="input"
+                        placeholder="e.g., Mobile Development, AI, Blockchain"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="form-label">
+                        Portfolio URL
+                      </label>
+                      <input
+                        type="url"
+                        name="portfolio_url"
+                        value={formData.portfolio_url}
+                        onChange={handleChange}
+                        className="input"
+                        placeholder="https://your-portfolio.com"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="form-label">
+                          LinkedIn Profile
+                        </label>
+                        <input
+                          type="url"
+                          name="linkedin_url"
+                          value={formData.linkedin_url}
+                          onChange={handleChange}
+                          className="input"
+                          placeholder="https://linkedin.com/in/your-profile"
+                        />
+                      </div>
+                      <div>
+                        <label className="form-label">
+                          GitHub Profile
+                        </label>
+                        <input
+                          type="url"
+                          name="github_url"
+                          value={formData.github_url}
+                          onChange={handleChange}
+                          className="input"
+                          placeholder="https://github.com/your-username"
+                        />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label className="form-label">
+                        Investment Focus
+                      </label>
+                      <input
+                        type="text"
+                        name="investment_focus"
+                        value={formData.investment_focus}
+                        onChange={handleChange}
+                        className="input"
+                        placeholder="e.g., SaaS, FinTech, Healthcare"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="form-label">
+                        Investment Range
+                      </label>
+                      <input
+                        type="text"
+                        name="investment_range"
+                        value={formData.investment_range}
+                        onChange={handleChange}
+                        className="input"
+                        placeholder="e.g., $10K - $50K"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="form-label">
+                          Company
+                        </label>
+                        <input
+                          type="text"
+                          name="company"
+                          value={formData.company}
+                          onChange={handleChange}
+                          className="input"
+                          placeholder="Your company name"
+                        />
+                      </div>
+                      <div>
+                        <label className="form-label">
+                          Position
+                        </label>
+                        <input
+                          type="text"
+                          name="position"
+                          value={formData.position}
+                          onChange={handleChange}
+                          className="input"
+                          placeholder="Your role"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="form-label">
                         LinkedIn Profile
                       </label>
                       <input
@@ -213,121 +432,47 @@ const Profile: React.FC = () => {
                         placeholder="https://linkedin.com/in/your-profile"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        GitHub Profile
-                      </label>
-                      <input
-                        type="url"
-                        name="github_url"
-                        value={formData.github_url}
-                        onChange={handleChange}
-                        className="input"
-                        placeholder="https://github.com/your-username"
-                      />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Investment Focus
-                    </label>
-                    <input
-                      type="text"
-                      name="investment_focus"
-                      value={formData.investment_focus}
-                      onChange={handleChange}
-                      className="input"
-                      placeholder="e.g., SaaS, FinTech, Healthcare"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Investment Range
-                    </label>
-                    <input
-                      type="text"
-                      name="investment_range"
-                      value={formData.investment_range}
-                      onChange={handleChange}
-                      className="input"
-                      placeholder="e.g., $10K - $50K"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Company
-                      </label>
-                      <input
-                        type="text"
-                        name="company"
-                        value={formData.company}
-                        onChange={handleChange}
-                        className="input"
-                        placeholder="Your company name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Position
-                      </label>
-                      <input
-                        type="text"
-                        name="position"
-                        value={formData.position}
-                        onChange={handleChange}
-                        className="input"
-                        placeholder="Your role"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      LinkedIn Profile
-                    </label>
-                    <input
-                      type="url"
-                      name="linkedin_url"
-                      value={formData.linkedin_url}
-                      onChange={handleChange}
-                      className="input"
-                      placeholder="https://linkedin.com/in/your-profile"
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="flex items-center justify-end space-x-4 pt-4 border-t">
-              <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className="btn btn-outline"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn btn-primary min-w-[100px]"
-              >
-                {loading ? (
-                  <span className="flex items-center">
-                    <Loader className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
-                  </span>
-                ) : (
-                  'Save Changes'
+                  </>
                 )}
-              </button>
-            </div>
-          </form>
+              </div>
+
+              <div className="flex items-center justify-end space-x-4 pt-8 border-t border-white/10">
+                <motion.button
+                  type="button"
+                  onClick={() => navigate(-1)}
+                  className="btn btn-outline"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  type="submit"
+                  disabled={loading}
+                  className="btn btn-primary min-w-[120px]"
+                  whileHover={{ scale: loading ? 1 : 1.05 }}
+                  whileTap={{ scale: loading ? 1 : 0.95 }}
+                >
+                  {loading ? (
+                    <span className="flex items-center">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      >
+                        <Loader className="w-4 h-4 mr-2" />
+                      </motion.div>
+                      Saving...
+                    </span>
+                  ) : (
+                    <span className="flex items-center">
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Changes
+                    </span>
+                  )}
+                </motion.button>
+              </div>
+            </motion.form>
+          </GlassCard>
         </div>
       </div>
     </div>
