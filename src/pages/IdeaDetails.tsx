@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Share2, DollarSign, MessageSquare, Bookmark, Calendar, BarChart, Tag, Award } from 'lucide-react';
+import { Share2, DollarSign, MessageSquare, Bookmark, Calendar, BarChart, Tag, Award, AlertCircle } from 'lucide-react';
 import { Facebook, Instagram, Twitter, Linkedin, Copy } from 'lucide-react';
 import { mockIdeas } from '../data/mockData';
 import { useAuthStore } from '../store/authStore';
@@ -19,6 +19,9 @@ const IdeaDetails: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [showInvestModal, setShowInvestModal] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [paymentLink, setPaymentLink] = useState<any>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchIdea = async () => {
@@ -47,6 +50,28 @@ const IdeaDetails: React.FC = () => {
     fetchSavedIdeas();
   }, [user]);
 
+  // Fetch payment link for this idea
+  useEffect(() => {
+    const fetchPaymentLink = async () => {
+      if (!idea?.id) return;
+      
+      const { data, error } = await supabase
+        .from('payment_links')
+        .select('*')
+        .eq('idea_id', idea.id)
+        .eq('is_active', true)
+        .single();
+      
+      if (!error && data) {
+        setPaymentLink(data);
+      }
+    };
+    
+    if (idea?.id) {
+      fetchPaymentLink();
+    }
+  }, [idea?.id]);
+
   // Save/Unsave handler
   const handleToggleSave = async () => {
     if (!user || user.role !== 'investor') {
@@ -73,6 +98,50 @@ const IdeaDetails: React.FC = () => {
       .eq('investor_id', user.id);
     if (data) setSavedIdeas(data.map((row: any) => row.idea_id));
     setSaving(false);
+  };
+
+  // Handle investment with Stripe checkout
+  const handleInvestment = async () => {
+    if (!user || user.role !== 'investor') {
+      alert('You must be logged in as an investor to invest in ideas.');
+      return;
+    }
+
+    setPaymentLoading(true);
+    setPaymentError(null);
+
+    try {
+      if (!paymentLink) {
+        // Try to fetch payment link again
+        const { data, error } = await supabase
+          .from('payment_links')
+          .select('*')
+          .eq('idea_id', idea.id)
+          .eq('is_active', true)
+          .single();
+        
+        if (error || !data) {
+          throw new Error('Payment link not available for this idea');
+        }
+        
+        setPaymentLink(data);
+        
+        // Open Stripe checkout
+        window.open(data.payment_url, '_blank', 'noopener,noreferrer');
+      } else {
+        // Open Stripe checkout
+        window.open(paymentLink.payment_url, '_blank', 'noopener,noreferrer');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      setPaymentError(
+        error instanceof Error 
+          ? error.message 
+          : 'Unable to process payment at this time'
+      );
+    } finally {
+      setPaymentLoading(false);
+    }
   };
 
   // If idea not found, redirect to ideas page
@@ -343,11 +412,46 @@ const IdeaDetails: React.FC = () => {
                 </div>
               </div>
 
+              {/* Investment Button */}
               {isAuthenticated && user?.role === 'investor' && (
-                <button className="btn btn-primary w-full" onClick={() => setShowInvestModal(true)}>
-                  <DollarSign className="h-4 w-4 mr-2" />
-                  Invest in this Idea
-                </button>
+                <div className="space-y-3">
+                  {paymentError && (
+                    <div className="bg-error-50 border border-error-200 rounded-md p-3">
+                      <div className="flex items-start">
+                        <AlertCircle className="h-5 w-5 text-error-500 mt-0.5 mr-2 flex-shrink-0" />
+                        <div className="text-sm">
+                          <p className="text-error-700 font-medium mb-1">Payment Error</p>
+                          <p className="text-error-600">{paymentError}</p>
+                          <p className="text-error-600 mt-2">
+                            Please contact our support team at{' '}
+                            <a 
+                              href="mailto:support@fundyouridea.com" 
+                              className="underline hover:text-error-700"
+                            >
+                              support@fundyouridea.com
+                            </a>{' '}
+                            for further assistance.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <button 
+                    className="btn btn-primary w-full" 
+                    onClick={handleInvestment}
+                    disabled={paymentLoading}
+                  >
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    {paymentLoading ? 'Processing...' : 'Invest in this Idea'}
+                  </button>
+                  
+                  {paymentLink && (
+                    <p className="text-xs text-gray-500 text-center">
+                      Secure payment powered by {paymentLink.payment_provider}
+                    </p>
+                  )}
+                </div>
               )}
 
               {(!isAuthenticated || user?.role !== 'investor') && (
@@ -479,38 +583,6 @@ const IdeaDetails: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Invest Modal */}
-        {showInvestModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-8 relative animate-fade-in">
-              <button
-                className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl"
-                onClick={() => {
-                  setShowInvestModal(false);
-                }}
-                aria-label="Close"
-              >
-                &times;
-              </button>
-              <h2 className="text-2xl font-bold mb-6 text-center text-primary-700">Invest in this Idea</h2>
-              <div className="space-y-6 text-center">
-                <p className="text-gray-700 text-lg font-medium">
-                  Online payment is coming soon.<br />
-                  To invest, please reach out to <a href="mailto:invest@fundyouridea.ooaktech.com" className="text-primary-600 underline">invest@fundyouridea.ooaktech.com</a>
-                </p>
-                <div className="space-y-3">
-                  <button className="btn btn-primary w-full" disabled>
-                    Invest via Khalti (Coming Soon)
-                  </button>
-                  <button className="btn btn-outline w-full" disabled>
-                    Invest via Stripe (Coming Soon)
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
