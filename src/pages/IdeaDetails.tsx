@@ -448,7 +448,7 @@ const IdeaDetails: React.FC = () => {
                   
                   {paymentLink && (
                     <p className="text-xs text-gray-500 text-center">
-                      Secure payment powered by {paymentLink.payment_provider}
+                      Secure payment powered by Fund Your Idea via {paymentLink.payment_provider}
                     </p>
                   )}
                 </div>
