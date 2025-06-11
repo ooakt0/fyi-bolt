@@ -10,7 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Ideas from './pages/Ideas';
 import IdeaDetails from './pages/IdeaDetails';
 import HowItWorks from './pages/HowItWorks';
-import IdeaForm from './pages/IdeaForm';
+import {IdeaForm} from './pages/IdeaForm';
 import SavedIdeas from './pages/SavedIdeas';
 import Profile from './pages/Profile';
 import EditIdeaPage from './pages/EditIdeaPage';
@@ -18,6 +18,7 @@ import Services from './pages/Services';
 import { useAuthStore, initializeAuthStore } from './store/authStore';
 import { useAutoLogoutOnInactivity } from './hooks/useAutoLogoutOnInactivity';
 import ScrollToTop from './components/layout/ScrollToTop';
+import ChatBot from './components/chat/ChatBot';
 
 
 const App: React.FC = () => {
@@ -89,6 +90,7 @@ const App: React.FC = () => {
             </Routes>
           </main>
           <Footer />
+          <ChatBot />
         </div>
       </Router>
     </HelmetProvider>

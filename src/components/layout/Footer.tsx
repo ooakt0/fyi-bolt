@@ -17,8 +17,7 @@ const Footer: React.FC = () => {
       links: [
         { to: '/ideas', label: 'Browse Ideas' },
         { to: '/how-it-works', label: 'How It Works' },
-        { to: '/success-stories', label: 'Success Stories' },
-        { to: '/blog', label: 'Blog' },
+        { to: '/services', label: 'Our Services' },
       ]
     },
     {

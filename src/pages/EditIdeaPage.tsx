@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import IdeaForm from './IdeaForm';
+import { IdeaForm } from './IdeaForm';
 import { supabase } from '../store/authStore/supabaseClient';
 import { Zap } from 'lucide-react';
 

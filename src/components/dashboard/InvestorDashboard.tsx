@@ -8,7 +8,7 @@ import { getMessagesForUser } from '../../data/mockData';
 import IdeaCard from '../ideas/IdeaCard';
 import { useIdeasStore } from '../../store/authStore/ideasStore';
 
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 
 // Glassmorphism card component
 const GlassCard: React.FC<{

@@ -115,15 +115,15 @@ const Section: React.FC<{
   id?: string;
 }> = ({ children, className = '', id }) => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isInView = useInView(ref, { once: true, margin: "-20px" });
 
   return (
     <motion.section
       ref={ref}
       id={id}
-      className={`min-h-screen flex items-center justify-center relative ${className}`}
-      initial={{ opacity: 0, y: 100 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 100 }}
+      className={`py-16 relative ${className}`}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
     >
       {children}
@@ -169,7 +169,7 @@ const Home: React.FC = () => {
   const featuredIdeas = ideas.filter(i => i.approved).slice(0, 3);
 
   return (
-    <div className="relative min-h-screen text-white overflow-hidden">
+    <div className="relative text-white overflow-x-hidden">
       <Helmet>
         <title>FundYourIdea | Smarter Crowdfunding Platform</title>
       </Helmet>
@@ -188,7 +188,7 @@ const Home: React.FC = () => {
 
       <div className="relative z-10">
         {/* Hero Section */}
-        <Section id="hero" className="pt-32">
+        <Section id="hero" className="pt-32 pb-20">
           <div className="container-custom px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto text-center">
               <motion.div
@@ -279,7 +279,7 @@ const Home: React.FC = () => {
         </Section>
 
         {/* How FundYourIdea is Different Section */}
-        <Section id="different">
+        <Section id="different" className="py-20">
           <div className="container-custom px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <motion.h2 
@@ -291,7 +291,7 @@ const Home: React.FC = () => {
                   backgroundClip: 'text',
                 }}
               >
-                How FundYourIdea is Different
+                Our Unique Approach
               </motion.h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -346,7 +346,7 @@ const Home: React.FC = () => {
         </Section>
 
         {/* How It Works Section */}
-        <Section id="how-it-works">
+        <Section id="how-it-works" className="py-20">
           <div className="container-custom px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <motion.div className="text-center mb-16">
@@ -419,7 +419,7 @@ const Home: React.FC = () => {
         </Section>
 
         {/* Featured Ideas Section */}
-        <Section id="featured-ideas">
+        <Section id="featured-ideas" className="py-20">
           <div className="container-custom px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <motion.div className="text-center mb-16">
@@ -543,7 +543,7 @@ const Home: React.FC = () => {
         </Section>
 
         {/* Testimonials Section */}
-        <Section id="testimonials">
+        <Section id="testimonials" className="py-20">
           <div className="container-custom px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <motion.div className="text-center mb-16">
@@ -626,7 +626,7 @@ const Home: React.FC = () => {
         </Section>
 
         {/* CTA Section */}
-        <Section id="cta">
+        <Section id="cta" className="py-20 pb-32">
           <div className="container-custom px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
               <GlassCard className="p-12" hover={false}>
