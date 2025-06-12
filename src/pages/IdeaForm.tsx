@@ -265,7 +265,7 @@ export const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
     setIsValidating(true);
     try {
       
-      const validation = await validateIdeaWithAI(ideaData);
+      const validation = await validateIdeaWithAI({ ...ideaData, id: ideaToEdit?.id ?? 'temp-id' });
       console.log('AI Validation Results:', validation);
       setValidationResults(validation);
       setStep('validation-results');
@@ -354,14 +354,18 @@ export const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
         ...(form.supportingDocUrl ? { supporting_doc_url: form.supportingDocUrl, supporting_doc_name: form.supportingDoc } : {}),
       };
 
+      console.log('Submitting idea data:', ideaData);
+
       let result;
       if (ideaToEdit) {
+        // Update the existing idea
         result = await supabase.from('ideas')
           .update(ideaData)
           .eq('id', ideaToEdit.id)
           .select()
           .single();
       } else {
+        // Insert a new idea
         result = await supabase.from('ideas')
           .insert([{
             ...ideaData,
@@ -383,13 +387,14 @@ export const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
       }
 
       setStep('done');
-      setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err: any) {
       console.error('Submission error:', err);
       setSubmitError('Failed to submit idea. Please try again.');
       setStep('verify');
     }
-  };  const handleBackToDashboard = () => {
+  };  
+  
+  const handleBackToDashboard = () => {
     navigate('/dashboard');
   };
 
@@ -602,19 +607,51 @@ export const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
 
   if (step === 'done') {
     return (
-      <div className="relative min-h-screen text-white overflow-hidden">
+      // <div className="relative min-h-screen text-white overflow-hidden">
+        <div className="relative min-h-screen text-white overflow-hidden">
         <AnimatedBackground />
-        <div className="relative z-10 min-h-screen flex items-center justify-center">
-          <GlassCard className="p-12 text-center max-w-lg">
-            <motion.div
-              className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 mb-8"
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.6 }}
-            >
-              <Check className="h-10 w-10 text-white" />
-            </motion.div>
-            <h2 className="text-3xl font-bold text-white mb-4">Idea Created!</h2>
-            <p className="text-gray-300 mb-8">Your idea has been successfully created and is pending approval.</p>
+        <div className="relative z-10 min-h-screen flex items-center justify-center py-12">
+          <div className="w-full max-w-4xl mx-auto px-4">
+            <div className="flex justify-center items-center w-full">
+              <GlassCard className="p-14 text-center max-w-lg w-full flex flex-col justify-center items-center">
+                <motion.div
+                  className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 mb-8"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <Check className="h-10 w-10 text-white" />
+                </motion.div>
+                <h2 className="text-3xl font-bold text-white mb-4">
+                  {ideaToEdit ? 'Idea Updated!' : 'Idea Created!'}
+                </h2>
+                <p className="text-gray-300 mb-8">
+                  {ideaToEdit
+                  ? 'Your idea has been successfully updated and is pending approval.'
+                  : 'Your idea has been successfully created and is pending approval.'}
+                </p>
+              </GlassCard>
+            </div>
+            <div className="rounded-xl p-5 mb-8 text-left ">
+              <h3 className="text-lg font-semibold text-blue-300 mb-2">Why Validate with AI?</h3>
+              <ul className="list-disc list-inside text-blue-100 space-y-1">
+              <li>
+                <span className="font-medium text-blue-200">Expert Feedback:</span> Get instant, unbiased feedback on your idea’s clarity, uniqueness, and market potential.
+              </li>
+              <li>
+                <span className="font-medium text-blue-200">Improve Success Rate:</span> AI validation helps you refine your pitch and address common investor concerns before submitting.
+              </li>
+              <li>
+                <span className="font-medium text-blue-200">Stand Out:</span> Ideas validated by AI may be highlighted to investors as higher quality and more thoroughly prepared.
+              </li>
+              <li>
+                <span className="font-medium text-blue-200">Actionable Suggestions:</span> Receive concrete tips to strengthen your idea and increase your chances of approval.
+              </li>
+              </ul>
+              <p className="mt-4 text-blue-200">
+              <span className="font-semibold">Note:</span> AI validation is optional, but highly recommended for maximizing your idea’s impact!
+              </p>
+            </div>
+            <div className="flex justify-center items-center w-full">
             <motion.button
               className="btn btn-primary"
               onClick={handleBackToDashboard}
@@ -623,8 +660,18 @@ export const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
             >
               Back to Dashboard
             </motion.button>
-          </GlassCard>
+            <span className="mx-4">|</span>
+            <motion.button
+              className="btn btn-primary"
+              onClick={() => setStep('validate')}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Validate with AI
+            </motion.button>
+            </div>
         </div>
+      </div>
       </div>
     );
   }
@@ -645,97 +692,200 @@ export const IdeaForm: React.FC<IdeaFormProps> = ({ ideaToEdit }) => {
 
             {/* Form Sections */}
             <form onSubmit={handleSubmit} className="space-y-12">
-              {sections.map(section => (
-                <div key={section.id} className="space-y-8">
-                  <h3 className="text-2xl font-semibold flex items-center gap-3">
-                    <section.icon className="h-6 w-6" />
-                    {section.title}
-                  </h3>
-                  <div className="space-y-6">
-                    {section.fields.map(field => (
-                      <div key={field.name}>
-                        <label className="block text-sm font-medium mb-2">
-                          {field.label}
-                          <span className="ml-2 text-xs text-gray-400">{field.description}</span>
-                        </label>
-                        {field.type === 'textarea' ? (
-                          <textarea
-                            name={field.name}
-                            value={form[field.name]}
-                            onChange={handleFieldChange}
-                            placeholder={field.placeholder}
-                            rows={4}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors"
-                          />
-                        ) : field.type === 'select' ? (                          <select
-                            name={field.name}
-                            value={form[field.name]}
-                            onChange={handleFieldChange}
-                            className="w-full px-4 py-3 text-white border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300"
-                            style={{
-                              background: 'linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(17, 24, 39, 0.9) 100%)',
-                              appearance: 'none',
-                              backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-                              backgroundPosition: 'right 0.5rem center',
-                              backgroundRepeat: 'no-repeat',
-                              backgroundSize: '1.5em 1.5em',
-                              paddingRight: '2.5rem'
-                            }}
-                          >
-                            <option value="" style={{ backgroundColor: '#111827', color: '#ffffff' }}>{field.placeholder}</option>
-                            {field.options?.map(option => (
-                              <option key={option} value={option} style={{ backgroundColor: '#111827', color: '#ffffff' }}>{option}</option>
-                            ))}
-                          </select>
-                        ) : field.type === 'select-or-custom' ? (
-                          <input
-                            type="text"
-                            name={field.name}
-                            value={form[field.name]}
-                            onChange={handleFieldChange}
-                            placeholder={field.placeholder}
-                            list={`${field.name}-options`}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors"
-                          />
-                        ) : (
-                          <input
-                            type={field.type}
-                            name={field.name}
-                            value={form[field.name]}
-                            onChange={handleFieldChange}
-                            placeholder={field.placeholder}
-                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors"
-                          />
-                        )}
-                        {validateField(field.name) && (
-                          <p className="mt-1 text-sm text-red-400">{validateField(field.name)}</p>
-                        )}
-                        {field.type === 'select-or-custom' && (
-                          <datalist id={`${field.name}-options`}>
-                            {field.options?.map(option => (
-                              <option key={option} value={option} />
-                            ))}
-                          </datalist>
-                        )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                {/* Left Column */}
+                <div className="space-y-12">
+                  {sections
+                    .filter(section => section.id === 'basics' || section.id === 'details')
+                    .map(section => (
+                      <div key={section.id} className="space-y-8">
+                        <h3 className="text-2xl font-semibold flex items-center gap-3">
+                          <section.icon className="h-6 w-6" />
+                          {section.title}
+                        </h3>
+                        <div className="space-y-6">
+                          {section.fields.map(field => (
+                            <div key={field.name}>
+                              <label className="block text-sm font-medium mb-2">
+                                {field.label}
+                                <span className="ml-2 text-xs text-gray-400">{field.description}</span>
+                              </label>
+                              {field.type === 'textarea' ? (
+                                <textarea
+                                  name={field.name}
+                                  value={form[field.name]}
+                                  onChange={handleFieldChange}
+                                  placeholder={field.placeholder}
+                                  rows={4}
+                                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors"
+                                />
+                              ) : field.type === 'select' ? (                          <select
+                                  name={field.name}
+                                  value={form[field.name]}
+                                  onChange={handleFieldChange}
+                                  className="w-full px-4 py-3 text-white border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300"
+                                  style={{
+                                    background: 'linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(17, 24, 39, 0.9) 100%)',
+                                    appearance: 'none',
+                                    backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                                    backgroundPosition: 'right 0.5rem center',
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundSize: '1.5em 1.5em',
+                                    paddingRight: '2.5rem'
+                                  }}
+                                >
+                                  <option value="" style={{ backgroundColor: '#111827', color: '#ffffff' }}>{field.placeholder}</option>
+                                  {field.options?.map(option => (
+                                    <option key={option} value={option} style={{ backgroundColor: '#111827', color: '#ffffff' }}>{option}</option>
+                                  ))}
+                                </select>
+                              ) : field.type === 'select-or-custom' ? (
+                                <input
+                                  type="text"
+                                  name={field.name}
+                                  value={form[field.name]}
+                                  onChange={handleFieldChange}
+                                  placeholder={field.placeholder}
+                                  list={`${field.name}-options`}
+                                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors"
+                                />
+                              ) : (
+                                <input
+                                  type={field.type}
+                                  name={field.name}
+                                  value={form[field.name]}
+                                  onChange={handleFieldChange}
+                                  placeholder={field.placeholder}
+                                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors"
+                                />
+                              )}
+                              {validateField(field.name) && (
+                                <p className="mt-1 text-sm text-red-400">{validateField(field.name)}</p>
+                              )}
+                              {field.type === 'select-or-custom' && (
+                                <datalist id={`${field.name}-options`}>
+                                  {field.options?.map(option => (
+                                    <option key={option} value={option} />
+                                  ))}
+                                </datalist>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
-                  </div>
                 </div>
-              ))}
 
+                {/* Right Column */}
+                <div className="space-y-12">
+                  {sections
+                    .filter(section => section.id === 'description')
+                    .map(section => (
+                      <div key={section.id} className="space-y-8">
+                        <h3 className="text-2xl font-semibold flex items-center gap-3">
+                          <section.icon className="h-6 w-6" />
+                          {section.title}
+                        </h3>
+                        <div className="space-y-6">
+                          {section.fields.map(field => (
+                            <div key={field.name}>
+                              <label className="block text-sm font-medium mb-2">
+                                {field.label}
+                                <span className="ml-2 text-xs text-gray-400">{field.description}</span>
+                              </label>
+                              {field.type === 'textarea' ? (
+                                <textarea
+                                  name={field.name}
+                                  value={form[field.name]}
+                                  onChange={handleFieldChange}
+                                  placeholder={field.placeholder}
+                                  rows={4}
+                                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors"
+                                />
+                              ) : field.type === 'select' ? (                          <select
+                                  name={field.name}
+                                  value={form[field.name]}
+                                  onChange={handleFieldChange}
+                                  className="w-full px-4 py-3 text-white border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300"
+                                  style={{
+                                    background: 'linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(17, 24, 39, 0.9) 100%)',
+                                    appearance: 'none',
+                                    backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                                    backgroundPosition: 'right 0.5rem center',
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundSize: '1.5em 1.5em',
+                                    paddingRight: '2.5rem'
+                                  }}
+                                >
+                                  <option value="" style={{ backgroundColor: '#111827', color: '#ffffff' }}>{field.placeholder}</option>
+                                  {field.options?.map(option => (
+                                    <option key={option} value={option} style={{ backgroundColor: '#111827', color: '#ffffff' }}>{option}</option>
+                                  ))}
+                                </select>
+                              ) : field.type === 'select-or-custom' ? (
+                                <input
+                                  type="text"
+                                  name={field.name}
+                                  value={form[field.name]}
+                                  onChange={handleFieldChange}
+                                  placeholder={field.placeholder}
+                                  list={`${field.name}-options`}
+                                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors"
+                                />
+                              ) : (
+                                <input
+                                  type={field.type}
+                                  name={field.name}
+                                  value={form[field.name]}
+                                  onChange={handleFieldChange}
+                                  placeholder={field.placeholder}
+                                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-blue-500/50 transition-colors"
+                                />
+                              )}
+                              {validateField(field.name) && (
+                                <p className="mt-1 text-sm text-red-400">{validateField(field.name)}</p>
+                              )}
+                              {field.type === 'select-or-custom' && (
+                                <datalist id={`${field.name}-options`}>
+                                  {field.options?.map(option => (
+                                    <option key={option} value={option} />
+                                  ))}
+                                </datalist>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Submit and Exit Buttons */}
               <div className="flex justify-center pt-8">
                 <motion.button
-                  type="submit"
                   className={`px-8 py-4 font-bold rounded-xl transition-all duration-300 ${
-                    completionPercentage() === 100
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700'
-                      : 'bg-white/10 text-white/50 cursor-not-allowed'
+                  completionPercentage() === 100
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700'
+                  : 'bg-white/10 text-white/50 cursor-not-allowed'
                   }`}
-                  disabled={completionPercentage() !== 100}
-                  whileHover={completionPercentage() === 100 ? { scale: 1.05 } : undefined}
-                  whileTap={completionPercentage() === 100 ? { scale: 0.95 } : undefined}
+                  onClick={handleConfirm}
+                  whileHover={{ scale: 1.12 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  {completionPercentage() === 100 ? 'Continue to AI Validation' : 'Complete All Sections to Continue'}
+                  <Check className="mr-2 h-5 w-5 inline" />
+                  Confirm & Create
+                </motion.button>
+
+                <span className="mx-4" />
+
+                <motion.button
+                  type="button"
+                  className="px-8 py-4 font-bold rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all duration-300"
+                  onClick={handleBackToDashboard}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Exit to Dashboard
                 </motion.button>
               </div>
             </form>

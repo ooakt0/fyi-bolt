@@ -69,8 +69,9 @@ const Ideas: React.FC = () => {
   }, [ideas.length, fetchIdeas]);
 
   const filteredIdeas = ideas.filter(idea => {
+    const isApproved = idea.approved; // Ensure the idea is approved
     const matchesSearch = searchText === '' || idea.title.toLowerCase().includes(searchText.toLowerCase());
-    return matchesSearch;
+    return isApproved && matchesSearch;
   });
 
   return (
