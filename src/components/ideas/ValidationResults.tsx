@@ -11,14 +11,13 @@ interface ValidationResultsProps {
   ideaData: IdeaData;
   onContinue: () => void;
   onEdit: () => void;
+  hideButtons?: boolean; // New prop to control button visibility
 }
-
 
 const ValidationResults: React.FC<ValidationResultsProps> = ({
   validation,
   ideaData,
-  onContinue,
-  onEdit
+  hideButtons = false, // Default to false
 }) => {
     const navigate = useNavigate(); // Move useNavigate inside the component
 
@@ -103,6 +102,7 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
                     <BsPeopleFill className="text-blue-400 w-6 h-6 mr-2" />
                     <h2 className="text-2xl font-bold">Target Personas</h2>
                 </div>
+                {/* Adjust grid layout for responsiveness */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {validation?.user_personas?.map((persona, index) => (
                         <div key={index} className="bg-gray-700 p-4 rounded-lg">
@@ -159,17 +159,19 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
             </div>
 
             {/* Footer Buttons */}
-            <div className="flex justify-center gap-6 mt-12">
-                <motion.button
-                    type="button"
-                    className="px-8 py-4 font-bold rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all duration-300"
-                    onClick={handleBackToDashboard}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                >
-                    Exit to Dashboard
-                </motion.button>
-            </div>
+            {!hideButtons && (
+                <div className="flex justify-center gap-6 mt-12">
+                    <motion.button
+                        type="button"
+                        className="px-8 py-4 font-bold rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all duration-300"
+                        onClick={handleBackToDashboard}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        Exit to Dashboard
+                    </motion.button>
+                </div>
+            )}
         </div>
     );
 };

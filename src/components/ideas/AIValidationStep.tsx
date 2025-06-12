@@ -4,16 +4,19 @@ import { Activity, Brain, Target, TrendingUp } from 'lucide-react';
 import type { IdeaData } from '../../types';
 
 interface AIValidationStepProps {
-  ideaData: IdeaData;
-  onValidate: () => Promise<void>;
-  onSkip: () => void;
-  isValidating: boolean;
+  ideaData?: IdeaData; // Made optional to avoid unused warnings
+  onValidate?: () => Promise<void>; // Made optional
+  onSkip?: () => void; // Made optional
+  isValidating?: boolean; // Made optional
+  hideButtons?: boolean; // New prop to control button visibility
 }
 
 const AIValidationStep: React.FC<AIValidationStepProps> = ({
+  ideaData,
   onValidate,
   onSkip,
-  isValidating
+  isValidating,
+  hideButtons = false // Default to false
 }) => {
   const features = [
     {
@@ -42,15 +45,17 @@ const AIValidationStep: React.FC<AIValidationStepProps> = ({
     <div className="w-full max-w-4xl md:w-4/5 sm:w-11/12 mx-auto space-y-8">
       <div className="text-center mb-12">
         <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-transparent bg-clip-text">
-          AI-Powered Idea Validation
+          {hideButtons ? 'Validation Report Not Available' : 'AI-Powered Idea Validation'}
         </h2>
         <p className="text-gray-300 max-w-2xl mx-auto">
-          Before submitting your idea, get valuable insights and recommendations from our AI system.
-          This analysis will help strengthen your pitch and increase your chances of success.
+          {hideButtons
+            ? 'After running the validation, we will provide valuable insights and recommendations from our AI system. This analysis will help strengthen pitch and increase chances of success.'
+            : 'Before submitting your idea, get valuable insights and recommendations from our AI system. This analysis will help strengthen your pitch and increase your chances of success.'}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Adjust grid layout for responsiveness */}
+      <div className="grid grid-cols-1 gap-6">
         {features.map((feature, index) => (
           <motion.div
             key={feature.title}
@@ -76,33 +81,35 @@ const AIValidationStep: React.FC<AIValidationStepProps> = ({
         ))}
       </div>
 
-      <div className="flex justify-center gap-6 mt-12">
-        <motion.button
-          onClick={onValidate}
-          disabled={isValidating}
-          className="px-8 py-4 rounded-xl font-bold text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-          whileHover={{ scale: isValidating ? 1 : 1.02 }}
-          whileTap={{ scale: isValidating ? 1 : 0.98 }}
-        >
-          {isValidating ? (
-            <>
-              <span className="loading loading-spinner"></span>
-              Analyzing...
-            </>
-          ) : (
-            'Validate with AI'
-          )}
-        </motion.button>
-        <motion.button
-          onClick={onSkip}
-          disabled={isValidating}
-          className="px-8 py-4 rounded-xl font-bold text-white border border-gray-700 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-          whileHover={{ scale: isValidating ? 1 : 1.02 }}
-          whileTap={{ scale: isValidating ? 1 : 0.98 }}
-        >
-          Skip
-        </motion.button>
-      </div>
+      {!hideButtons && (
+        <div className="flex justify-center gap-6 mt-12">
+          <motion.button
+            onClick={onValidate}
+            disabled={isValidating}
+            className="px-8 py-4 rounded-xl font-bold text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+            whileHover={{ scale: isValidating ? 1 : 1.02 }}
+            whileTap={{ scale: isValidating ? 1 : 0.98 }}
+          >
+            {isValidating ? (
+              <>
+                <span className="loading loading-spinner"></span>
+                Analyzing...
+              </>
+            ) : (
+              'Validate with AI'
+            )}
+          </motion.button>
+          <motion.button
+            onClick={onSkip}
+            disabled={isValidating}
+            className="px-8 py-4 rounded-xl font-bold text-white border border-gray-700 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+            whileHover={{ scale: isValidating ? 1 : 1.02 }}
+            whileTap={{ scale: isValidating ? 1 : 0.98 }}
+          >
+            Skip
+          </motion.button>
+        </div>
+      )}
     </div>
   );
 };
