@@ -8,32 +8,7 @@ import type { IdeaValidation, IdeaData, Idea } from '../types';
 import { validateIdeaWithAI, saveValidationResults } from '../services/ideaValidation';
 import AIValidationStep from '../components/ideas/AIValidationStep';
 import ValidationResults from '../components/ideas/ValidationResults';
-
-// Component for the animated background
-const AnimatedBackground: React.FC = () => (
-  <div className="fixed inset-0 pointer-events-none z-0">
-    <div 
-      className="absolute inset-0"
-      style={{ 
-        background: 'linear-gradient(135deg, #030303 0%, #0a0a0a 50%, #030303 100%)',
-      }}
-    />
-    <motion.div
-      className="absolute inset-0"
-      style={{
-        background: 'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%)'
-      }}
-      animate={{
-        background: [
-          'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
-          'radial-gradient(ellipse at center, rgba(139, 92, 246, 0.1) 0%, transparent 70%)',
-          'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%)'
-        ]
-      }}
-      transition={{ duration: 8, repeat: Infinity }}
-    />
-  </div>
-);
+import AnimatedBackground from '../components/layout/AnimatedBackground';
 
 // Glass card component
 const GlassCard: React.FC<{ 
