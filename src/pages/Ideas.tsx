@@ -3,34 +3,7 @@ import { Search, Filter, Zap, Globe, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useIdeasStore } from '../store/authStore/ideasStore';
 import IdeaCard from '../components/ideas/IdeaCard';
-
-// Animated background component
-const AnimatedBackground: React.FC = () => {
-  return (
-    <div className="fixed inset-0 pointer-events-none z-0">
-      <div 
-        className="absolute inset-0"
-        style={{ 
-          background: 'linear-gradient(135deg, #030303 0%, #0a0a0a 50%, #030303 100%)',
-        }}
-      />
-      <motion.div
-        className="absolute inset-0"
-        style={{
-          background: 'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
-        }}
-        animate={{
-          background: [
-            'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
-            'radial-gradient(ellipse at center, rgba(139, 92, 246, 0.1) 0%, transparent 70%)',
-            'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
-          ]
-        }}
-        transition={{ duration: 8, repeat: Infinity }}
-      />
-    </div>
-  );
-};
+import AnimatedBackground from '../components/layout/AnimatedBackground';
 
 // Glassmorphism card component
 const GlassCard: React.FC<{ 
@@ -69,8 +42,9 @@ const Ideas: React.FC = () => {
   }, [ideas.length, fetchIdeas]);
 
   const filteredIdeas = ideas.filter(idea => {
+    const isApproved = idea.approved; // Ensure the idea is approved
     const matchesSearch = searchText === '' || idea.title.toLowerCase().includes(searchText.toLowerCase());
-    return matchesSearch;
+    return isApproved && matchesSearch;
   });
 
   return (

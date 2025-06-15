@@ -2,111 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
-import { Lightbulb as LightBulb, ArrowRight, BarChart, Users, PieChart, DollarSign, CheckCircle, Zap, Rocket, Target, Shield, Globe, Sparkles } from 'lucide-react';
+import { Lightbulb as LightBulb, ArrowRight, Users, DollarSign, Zap, Rocket, Target, Globe, Sparkles } from 'lucide-react';
 import { useIdeasStore } from '../store/authStore/ideasStore';
-
-// Animated background component
-const AnimatedBackground: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
-    // Particle system
-    const particles: Array<{
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      size: number;
-      opacity: number;
-      color: string;
-    }> = [];
-
-    const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4'];
-
-    // Create particles
-    for (let i = 0; i < 50; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        size: Math.random() * 2 + 1,
-        opacity: Math.random() * 0.5 + 0.2,
-        color: colors[Math.floor(Math.random() * colors.length)]
-      });
-    }
-
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      particles.forEach((particle, index) => {
-        // Update position
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-
-        // Wrap around edges
-        if (particle.x < 0) particle.x = canvas.width;
-        if (particle.x > canvas.width) particle.x = 0;
-        if (particle.y < 0) particle.y = canvas.height;
-        if (particle.y > canvas.height) particle.y = 0;
-
-        // Draw particle
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = particle.color;
-        ctx.globalAlpha = particle.opacity;
-        ctx.fill();
-
-        // Draw connections
-        particles.slice(index + 1).forEach(otherParticle => {
-          const dx = particle.x - otherParticle.x;
-          const dy = particle.y - otherParticle.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          if (distance < 100) {
-            ctx.beginPath();
-            ctx.moveTo(particle.x, particle.y);
-            ctx.lineTo(otherParticle.x, otherParticle.y);
-            ctx.strokeStyle = particle.color;
-            ctx.globalAlpha = (100 - distance) / 100 * 0.2;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        });
-      });
-
-      requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0"
-      style={{ background: 'linear-gradient(135deg, #030303 0%, #0a0a0a 50%, #030303 100%)' }}
-    />
-  );
-};
+import AnimatedBackground from '../components/layout/AnimatedBackground';
 
 // Section component with scroll animations
 const Section: React.FC<{ 
@@ -115,15 +13,15 @@ const Section: React.FC<{
   id?: string;
 }> = ({ children, className = '', id }) => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isInView = useInView(ref, { once: true, margin: "-20px" });
 
   return (
     <motion.section
       ref={ref}
       id={id}
-      className={`min-h-screen flex items-center justify-center relative ${className}`}
-      initial={{ opacity: 0, y: 100 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 100 }}
+      className={`py-16 relative ${className}`}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
     >
       {children}
@@ -169,7 +67,7 @@ const Home: React.FC = () => {
   const featuredIdeas = ideas.filter(i => i.approved).slice(0, 3);
 
   return (
-    <div className="relative min-h-screen text-white overflow-hidden">
+    <div className="relative text-white overflow-x-hidden">
       <Helmet>
         <title>FundYourIdea | Smarter Crowdfunding Platform</title>
       </Helmet>
@@ -188,7 +86,7 @@ const Home: React.FC = () => {
 
       <div className="relative z-10">
         {/* Hero Section */}
-        <Section id="hero" className="pt-32">
+        <Section id="hero" className="pt-32 pb-20">
           <div className="container-custom px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto text-center">
               <motion.div
@@ -279,7 +177,7 @@ const Home: React.FC = () => {
         </Section>
 
         {/* How FundYourIdea is Different Section */}
-        <Section id="different">
+        <Section id="different" className="py-20">
           <div className="container-custom px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <motion.h2 
@@ -291,7 +189,7 @@ const Home: React.FC = () => {
                   backgroundClip: 'text',
                 }}
               >
-                How FundYourIdea is Different
+                Our Unique Approach
               </motion.h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -346,7 +244,7 @@ const Home: React.FC = () => {
         </Section>
 
         {/* How It Works Section */}
-        <Section id="how-it-works">
+        <Section id="how-it-works" className="py-20">
           <div className="container-custom px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <motion.div className="text-center mb-16">
@@ -419,7 +317,7 @@ const Home: React.FC = () => {
         </Section>
 
         {/* Featured Ideas Section */}
-        <Section id="featured-ideas">
+        <Section id="featured-ideas" className="py-20">
           <div className="container-custom px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <motion.div className="text-center mb-16">
@@ -543,7 +441,7 @@ const Home: React.FC = () => {
         </Section>
 
         {/* Testimonials Section */}
-        <Section id="testimonials">
+        <Section id="testimonials" className="py-20">
           <div className="container-custom px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <motion.div className="text-center mb-16">
@@ -626,7 +524,7 @@ const Home: React.FC = () => {
         </Section>
 
         {/* CTA Section */}
-        <Section id="cta">
+        <Section id="cta" className="py-20 pb-32">
           <div className="container-custom px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
               <GlassCard className="p-12" hover={false}>

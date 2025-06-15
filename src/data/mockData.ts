@@ -27,6 +27,7 @@ export const mockIdeas: Idea[] = [
     currentFunding: 45000,
     createdAt: '2023-10-20T14:45:00Z',
     imageUrl: 'https://images.pexels.com/photos/8376566/pexels-photo-8376566.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+    tags: ['health', 'ai', 'assistant', 'personalized care'],
     stage: 'mvp',
     approved: false,
   },
@@ -42,6 +43,8 @@ export const mockIdeas: Idea[] = [
     createdAt: '2023-12-05T09:15:00Z',
     stage: 'concept',
     approved: false,
+    imageUrl: 'https://images.pexels.com/photos/70497/pexels-photo-70497.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+    tags: ['food', 'local', 'restaurants', 'community'],
   },
   {
     id: '4',
@@ -124,6 +127,146 @@ export const mockMessages: Message[] = [
     read: false,
   },
 ];
+
+// Added missing properties to mockValidationResponse
+export const mockValidationResponse = {
+  id: "mock-id",
+  idea_id: "mock-idea-id",
+  created_at: "2025-06-10T00:00:00Z",
+  updated_at: "2025-06-10T00:00:00Z",
+  swot_analysis: {
+    strengths: [
+      "Comprehensive platform integrating discovery, reviews, and application submission",
+      "AI-driven personalization enhances user experience and decision-making",
+      "Multiple revenue streams (per-application fees + premium subscriptions)",
+      "Real-time tracking and interactive dashboard improve user engagement",
+      "Community features build trust through peer insights"
+    ],
+    weaknesses: [
+      "High dependency on institutional participation for data accuracy",
+      "Requires significant initial data collection and maintenance",
+      "Potential chicken-egg problem: needing both students and institutions to attract each other",
+      "Per-application revenue model may discourage price-sensitive institutions",
+      "Limited differentiation from existing competitors in core features"
+    ],
+    opportunities: [
+      "Growing global demand for higher education (projected 594M students by 2030)",
+      "Expansion into vocational training and international student markets",
+      "Partnerships with education ministries and scholarship providers",
+      "Data monetization through anonymized analytics for institutions",
+      "Integration with standardized testing platforms (SAT/ACT)"
+    ],
+    threats: [
+      "Established competitors with larger user bases (e.g., Common App, Niche)",
+      "Institutions developing proprietary application portals",
+      "Data privacy regulations (GDPR, FERPA) increasing compliance costs",
+      "Potential review bias or fake testimonials damaging credibility",
+      "Economic downturns reducing education spending"
+    ]
+  },
+  user_personas: [
+    {
+      name: "Aisha Khan",
+      age: "17",
+      occupation: "High School Student",
+      goals: [
+        "Find colleges matching academic interests",
+        "Compare admission requirements efficiently",
+        "Understand campus culture before applying"
+      ],
+      pain_points: [
+        "Overwhelmed by fragmented information sources",
+        "Difficulty assessing teaching quality pre-enrollment",
+        "Tracking multiple application deadlines"
+      ],
+      motivations: [
+        "Personalized recommendations saving research time",
+        "Peer reviews from current students",
+        "Single-platform application management"
+      ]
+    },
+    {
+      name: "Dr. Benjamin Wright",
+      age: "48",
+      occupation: "Admissions Director",
+      goals: [
+        "Attract qualified applicants efficiently",
+        "Reduce marketing costs per applicant",
+        "Improve demographic targeting"
+      ],
+      pain_points: [
+        "High customer acquisition costs",
+        "Inefficient manual application processing",
+        "Difficulty standing out among peer institutions"
+      ],
+      motivations: [
+        "Performance-based applicant sourcing",
+        "Premium visibility packages",
+        "Data insights on prospective students"
+      ]
+    },
+    {
+      name: "Maria Chen",
+      age: "19",
+      occupation: "International Transfer Student",
+      goals: [
+        "Find institutions with strong CS programs",
+        "Compare international student support services",
+        "Connect with current international students"
+      ],
+      pain_points: [
+        "Lack of localized admission requirement information",
+        "Unclear visa success rates by institution",
+        "Difficulty assessing faculty quality remotely"
+      ],
+      motivations: [
+        "Verified professor reviews",
+        "Peer forums for international students",
+        "Application fee waivers through platform"
+      ]
+    }
+  ],
+  market_analysis: {
+    market_size: "Global higher education market valued at $2.2T (2023), with 200M+ prospective students annually",
+    target_segments: [
+      "College-bound high school students (primary)",
+      "Graduate/professional program seekers",
+      "International students ($100B+ segment)",
+      "Education institutions seeking enrollment growth",
+      "Career changers exploring vocational programs"
+    ],
+    competition: [
+      { name: "Common App", strengths: ["application focus"], weaknesses: ["limited discovery"] },
+      { name: "Niche", strengths: ["reviews heavy"], weaknesses: ["weak application integration"] },
+      { name: "Cappex", strengths: ["scholarship focus"], weaknesses: ["declining market share"] }
+    ],
+    opportunities: [
+      "Monetizing international student recruitment (high-value segment)",
+      "Corporate partnerships for sponsored scholarships",
+      "Mobile-first expansion in emerging markets",
+      "AI-enhanced predictive enrollment tools for institutions",
+      "Integration with financial aid/scholarship databases"
+    ],
+    risks: [
+      "High user acquisition costs in saturated markets",
+      "Institutions bypassing platform with direct partnerships",
+      "Algorithmic bias in recommendations creating legal exposure",
+      "Free alternatives reducing conversion to paid services",
+      "Ad-blocking technology limiting ad-based revenue potential"
+    ]
+  },
+  investor_readiness_score: 68,
+  recommendations: [
+    "Develop proprietary data moat through exclusive institution partnerships",
+    "Implement blockchain verification for reviews to combat credibility issues",
+    "Pilot freemium model: free basic access + premium application support bundles",
+    "Prioritize international student segment with localized content/partnerships",
+    "Create institutional analytics dashboard as upsell product",
+    "Secure pilot agreements with 3+ universities before full launch",
+    "Allocate 30% of funding to initial user acquisition testing",
+    "Explore integration with existing student information systems (e.g., Naviance)"
+  ]
+};
 
 // Helper function to get ideas by creator
 export const getIdeasByCreator = (creatorId: string): Idea[] => {
