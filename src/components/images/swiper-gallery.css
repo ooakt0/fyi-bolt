@@ -1,0 +1,140 @@
+/* Swiper gallery custom styles */
+.swiper-gallery-container {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  padding: 1rem 0;
+  overflow: hidden; /* Contain overflowing children */
+  box-sizing: border-box;
+}
+
+.swiper-gallery {
+  width: 100%;
+  padding: 1rem 0 3rem; /* Space for pagination */
+  margin: 0 auto; /* Center the gallery */
+}
+
+/* Slide sizing */
+.swiper-slide-custom {
+  width: calc(25% - 20px);
+  min-width: 200px;
+  max-width: 300px;
+  aspect-ratio: 1/1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  box-sizing: border-box; /* Include padding in width calculation */
+  transform-origin: center center; /* Ensure transforms are centered */
+}
+
+/* Active slide effect - more subtle to stay within container */
+.swiper-slide-active {
+  transform: scale(1.03);
+  z-index: 2;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Custom navigation buttons */
+.custom-swiper-button-prev,
+.custom-swiper-button-next {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50%;
+  background-color: rgba(59, 130, 246, 0.2);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+.custom-swiper-button-prev {
+  left: 10px;
+}
+
+.custom-swiper-button-next {
+  right: 10px;
+}
+
+.custom-swiper-button-prev:after,
+.custom-swiper-button-next:after {
+  font-size: 16px !important;
+  font-weight: bold;
+}
+
+.custom-swiper-button-prev:hover,
+.custom-swiper-button-next:hover {
+  background-color: rgba(59, 130, 246, 0.4);
+}
+
+/* Custom pagination */
+.swiper-pagination-bullet {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.swiper-pagination-bullet-active {
+  background-color: #3b82f6 !important;
+}
+
+/* Coverflow effect styling */
+.swiper-slide-shadow-left,
+.swiper-slide-shadow-right {
+  background-image: none !important;
+}
+
+/* Contain overflow for coverflow effect */
+.swiper-wrapper {
+  padding: 20px 0;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+/* At smaller screen sizes */
+@media (max-width: 768px) {
+  .swiper-gallery-container {
+    padding: 0.5rem 0;
+  }
+  
+  .swiper-slide-custom {
+    width: calc(50% - 16px);
+    min-width: 160px;
+  }
+  
+  /* Scale down the active slide effect on smaller screens */
+  .swiper-slide-active {
+    transform: scale(1.02);
+  }
+}
+
+@media (max-width: 480px) {
+  .swiper-gallery-container {
+    padding: 0.5rem 0;
+  }
+  
+  .swiper-slide-custom {
+    width: calc(80% - 16px);
+    min-width: 140px;
+  }
+  
+  .custom-swiper-button-prev,
+  .custom-swiper-button-next {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  
+  .custom-swiper-button-prev {
+    left: 5px;
+  }
+  
+  .custom-swiper-button-next {
+    right: 5px;
+  }
+}

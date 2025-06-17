@@ -10,6 +10,7 @@ import { IdeaData, IdeaValidation } from '../types';
 import AIValidationStep from '../components/ideas/AIValidationStep';
 import AnimatedBackground from '../components/layout/AnimatedBackground';
 import FileManager from '../components/files/FileManager';
+import IdeaGallery from '../components/images/IdeaGallery';
 
 // Glassmorphism card component
 const GlassCard: React.FC<{
@@ -757,6 +758,21 @@ const IdeaDetails: React.FC = () => {
                       </motion.span>
                     )) : <span className="text-gray-500 text-sm">No tags</span>}
                   </div>
+                </GlassCard>
+              </motion.div>
+
+              {/* Gallery Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+              >
+                <GlassCard className="p-8" hover={false}>
+                  <IdeaGallery
+                    ideaId={id!}
+                    ideaName={idea.title}
+                    isCreator={user?.id === idea.creatorId}
+                  />
                 </GlassCard>
               </motion.div>
             </div>

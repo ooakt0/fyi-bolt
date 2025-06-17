@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { PlusCircle, DollarSign, MessageSquare, TrendingUp, Users, Edit, Zap } from 'lucide-react';
+import { PlusCircle, DollarSign, MessageSquare, TrendingUp, Users, Edit, Zap, ImagePlus } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { supabase } from '../../store/authStore/supabaseClient';
 import IdeaCard from '../ideas/IdeaCard';
+import { getIdeaImages } from '../../services/imageService';
+import S3Image from '../images/S3Image';
+import { Link as RouterLink } from 'react-router-dom';
 
 // Glassmorphism card component
 const GlassCard: React.FC<{ 
@@ -39,7 +42,10 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ userIdeas, loadingI
   const { user } = useAuthStore();
   const [messages, setMessages] = useState<any[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(true);
+  const [ideaImageCounts, setIdeaImageCounts] = useState<Record<string, number>>({});
   const navigate = useNavigate();
+
+  const creatorIdeas = userIdeas.filter(idea => idea.creatorId === user?.id);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -65,9 +71,34 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ userIdeas, loadingI
     fetchMessages();
   }, [user, userIdeas]);
 
+  useEffect(() => {
+    const fetchImageCounts = async () => {
+      const counts: Record<string, number> = {};
+      
+      for (const idea of creatorIdeas) {
+        try {
+          const images = await getIdeaImages(idea.id);
+          counts[idea.id] = images.length;
+        } catch (error) {
+          counts[idea.id] = 0;
+          console.error('Failed to fetch image count', {
+            action: 'CreatorDashboard.fetchImageCounts',
+            error,
+            ideaId: idea.id
+          });
+        }
+      }
+      
+      setIdeaImageCounts(counts);
+    };
+    
+    if (creatorIdeas.length > 0) {
+      fetchImageCounts();
+    }
+  }, [creatorIdeas]);
+
   const unreadMessages = messages.filter(msg => !msg.read);
   const totalFunding = userIdeas.reduce((sum, idea) => sum + (idea.currentFunding || 0), 0);
-  const creatorIdeas = userIdeas.filter(idea => idea.creatorId === user?.id);
 
   const metrics = [
     {
@@ -183,6 +214,21 @@ const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ userIdeas, loadingI
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                 >
                   <IdeaCard idea={idea} />
+                  
+                  <div className="absolute bottom-3 left-3 opacity-0 group-hover:opacity-100 transition-all duration-300 flex gap-2">
+                    <RouterLink to={`/ideas/${idea.id}`}>
+                      <motion.button
+                        className="bg-white/10 backdrop-blur-sm text-white text-xs px-4 py-2 rounded-xl hover:bg-white/20"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <ImagePlus className="h-3 w-3 mr-1 inline" />
+                        Gallery ({ideaImageCounts[idea.id] || 0})
+                      </motion.button>
+                    </RouterLink>
+                  </div>
+                  
+                  {/* Existing buttons for editing, etc. */}
                   {!idea.approved && (
                     <>
                       <motion.span 

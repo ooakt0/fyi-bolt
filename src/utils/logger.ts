@@ -97,6 +97,13 @@ interface LogContext {
   newPrivacy?: boolean;
   isPrivate?: boolean;
   userId?: string;
+  src?: string; 
+  imageId?: string; 
+  imageCount?: number; 
+  imageUrl?: string;
+  originalUrl?: string;
+  updates?: Record<string, any>;
+  newPrivacySetting?: boolean;
 }
 
 export const log = {

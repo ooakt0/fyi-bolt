@@ -2,7 +2,7 @@
 // import IdeaDetails from '../pages/IdeaDetails';
 import { supabase } from '../store/authStore/supabaseClient';
 import { FileType, IdeaFile } from '../types/fileTypes';
-import { generateUploadUrl, generateDownloadUrl, uploadFile } from '../utils/s3';
+import { generateUploadUrl, generateDownloadUrl } from '../utils/s3';
 import log from '../utils/logger';
 
 export interface FileMetadata {
@@ -24,17 +24,16 @@ export const getFileUploadUrl = async (
   ideaName: string,
   fileType: FileType,
   originalFileName: string
-): Promise<{ uploadUrl: string; fileUrl: string; fileName: string }> => {
-  const timestamp = Date.now(); // Use a shorter timestamp format
+): Promise<{ uploadUrl: string; fileUrl: string; fileName: string }> => {  const timestamp = Date.now(); // Use a shorter timestamp format
   const fileNameWithoutExt = originalFileName.split('.').slice(0, -1).join('.');
   const fileExtension = originalFileName.split('.').pop() || '';
   const fileName = `${fileNameWithoutExt}_${timestamp}.${fileExtension}`;
   
-  // Sanitize idea name to make it URL/path safe
-  const safeIdeaName = sanitizeFilename(ideaName);
+  // Get the base path for this idea
+  const basePath = getIdeaBasePath(ideaId, ideaName);
   
-  // Create a path that includes both ID and name for uniqueness and readability
-  const filePath = `idea-files/${ideaId}-${safeIdeaName}/${fileType}/${fileName}`;
+  // Create the full file path
+  const filePath = `${basePath}/${fileType}/${fileName}`;
   log.info('Generating pre-signed upload URL', {
     action: 'getFileUploadUrl',
     ideaId,
@@ -282,15 +281,14 @@ function getContentType(extension: string): string {
 // New centralized function to upload file with metadata
 export async function uploadFileWithMetadata(ideaId: string, ideaName: string, file: File, fileType: FileType): Promise<FileMetadata> {
   const fileName = `${Date.now()}-${file.name}`;
-  const safeIdeaName = sanitizeFilename(ideaName);
-  const filePath = `idea-files/${ideaId}-${safeIdeaName}/${fileType}/${fileName}`;
+  const basePath = getIdeaBasePath(ideaId, ideaName);
+  const filePath = `${basePath}/${fileType}/${fileName}`;
   const { uploadUrl } = await generateUploadUrl({ 
     filePath,
     contentType: file.type 
   });
-  
-  try {
-    await uploadFile(uploadUrl, file);
+    try {
+    await uploadFileToS3(uploadUrl, file);
     
     const { data: fileMetadata, error } = await supabase
       .from('idea_files')
@@ -322,8 +320,14 @@ export async function getFileUrl(filePath: string, isPublic: boolean): Promise<s
   }
 }
 
+// Helper function to generate the base path for an idea's files and images
+export function getIdeaBasePath(ideaId: string, ideaName: string): string {
+  const safeIdeaName = sanitizeFilename(ideaName);
+  return `idea-files/${ideaId}-${safeIdeaName}`;
+}
+
 // Helper function to sanitize filenames for use in URLs and paths
-function sanitizeFilename(name: string): string {
+export function sanitizeFilename(name: string): string {
   // Replace spaces with hyphens
   let sanitized = name.replace(/\s+/g, '-');
   
