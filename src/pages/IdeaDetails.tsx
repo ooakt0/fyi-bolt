@@ -9,6 +9,7 @@ import ValidationResults from '../components/ideas/ValidationResults';
 import { IdeaData, IdeaValidation } from '../types';
 import AIValidationStep from '../components/ideas/AIValidationStep';
 import AnimatedBackground from '../components/layout/AnimatedBackground';
+import FileManager from '../components/files/FileManager';
 
 // Glassmorphism card component
 const GlassCard: React.FC<{
@@ -521,6 +522,39 @@ const IdeaDetails: React.FC = () => {
                       </motion.div>
                     ))}
                   </div>
+                </GlassCard>
+              </motion.div>
+
+              {/* File Manager Section */}
+              <motion.div                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="mt-8"
+              >
+                <GlassCard className="p-8" hover={false}>
+                  {isAuthenticated ? (                    <FileManager
+                      ideaId={id!}
+                      ideaName={idea?.title || 'Untitled Idea'}
+                      creatorId={idea?.creatorId}
+                      currentUserId={user?.id ?? ''}
+                    />
+                  ) : (
+                    <div className="text-center py-6">
+                      <h3 className="text-xl font-semibold text-white mb-3">Idea Documents</h3>
+                      <p className="text-gray-300 mb-4">
+                        Sign in to view uploaded documents and files related to this idea.
+                      </p>
+                      <div className="flex justify-center space-x-4">
+                        <Link 
+                          to="/login" 
+                          state={{ from: location.pathname }}
+                          className="inline-flex items-center px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700 transition-colors"
+                        >
+                          <span>Sign In</span> <ArrowLeft className="ml-2 w-4 h-4 rotate-180" />
+                        </Link>
+                      </div>
+                    </div>
+                  )}
                 </GlassCard>
               </motion.div>
             </div>
