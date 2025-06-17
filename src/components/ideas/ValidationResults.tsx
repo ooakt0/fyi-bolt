@@ -101,30 +101,47 @@ const ValidationResults: React.FC<ValidationResultsProps> = ({
                 <div className="flex items-center mb-4">
                     <BsPeopleFill className="text-blue-400 w-6 h-6 mr-2" />
                     <h2 className="text-2xl font-bold">Target Personas</h2>
-                </div>
-                {/* Adjust grid layout for responsiveness */}
+                </div>                {/* Adjust grid layout for responsiveness - Show only 2 or 4 personas (even number) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {validation?.user_personas?.map((persona, index) => (
-                        <div key={index} className="bg-gray-700 p-4 rounded-lg">
-                            <h3 className="text-xl text-purple-400 mb-2">{persona.name}</h3>
-                            <div className="mt-4">
-                                <h4 className="text-lg text-gray-300">Pain Points</h4>
-                                <ul className="list-disc list-inside text-gray-400">
-                                    {persona.pain_points?.map((point, i) => (
-                                        <li key={i}>{point}</li>
-                                    ))}
-                                </ul>
+                    {(() => {
+                        // Determine how many personas to show (either 2 or 4, but no more than 4)
+                        let personasToShow = validation?.user_personas || [];
+                        let displayCount = personasToShow.length;
+                        
+                        // If more than 4, limit to 4
+                        if (displayCount > 4) {
+                            displayCount = 4;
+                        } 
+                        // If odd number, make it even by showing one less
+                        else if (displayCount % 2 !== 0) {
+                            displayCount = Math.max(2, displayCount - 1);
+                        }
+                        
+                        // Get the limited array of personas
+                        const limitedPersonas = personasToShow.slice(0, displayCount);
+                        
+                        return limitedPersonas.map((persona, index) => (
+                            <div key={index} className="bg-gray-700 p-4 rounded-lg">
+                                <h3 className="text-xl text-purple-400 mb-2">{persona.name}</h3>
+                                <div className="mt-4">
+                                    <h4 className="text-lg text-gray-300">Pain Points</h4>
+                                    <ul className="list-disc list-inside text-gray-400">
+                                        {persona.pain_points?.map((point, i) => (
+                                            <li key={i}>{point}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                                <div className="mt-4">
+                                    <h4 className="text-lg text-gray-300">Goals</h4>
+                                    <ul className="list-disc list-inside text-gray-400">
+                                        {persona.goals?.map((goal, i) => (
+                                            <li key={i}>{goal}</li>
+                                        ))}
+                                    </ul>
+                                </div>
                             </div>
-                            <div className="mt-4">
-                                <h4 className="text-lg text-gray-300">Goals</h4>
-                                <ul className="list-disc list-inside text-gray-400">
-                                    {persona.goals?.map((goal, i) => (
-                                        <li key={i}>{goal}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
-                    ))}
+                        ));
+                    })()}
                 </div>
             </div>
 
